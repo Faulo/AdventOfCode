@@ -1,6 +1,6 @@
 ﻿namespace Day01;
 
-class Program {
+class CalorieCount {
     const string INPUT_FOLDER = "input";
 
     public static int FindMostCalories(string file) {
