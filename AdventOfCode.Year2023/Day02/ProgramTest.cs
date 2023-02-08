@@ -13,34 +13,44 @@ class ProgramTest {
         CollectionAssert.AreEqual(expected, Program.ReadFileToArray(file));
     }
 
-    [TestCase("A Y", 8)]
-    [TestCase("B X", 1)]
-    [TestCase("C Z", 6)]
-    public void TestCalculateLineScore(string line, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLineScore(line));
+    [TestCase("A Y", MatchFormat.PickAndPick, 8)]
+    [TestCase("A Y", MatchFormat.PickAndResult, 4)]
+    [TestCase("B X", MatchFormat.PickAndPick, 1)]
+    [TestCase("B X", MatchFormat.PickAndResult, 1)]
+    [TestCase("C Z", MatchFormat.PickAndPick, 6)]
+    [TestCase("C Z", MatchFormat.PickAndResult, 7)]
+    public void TestCalculateLineScore(string line, MatchFormat format, int expected) {
+        Assert.AreEqual(expected, Program.CalculateLineScore(line, format));
     }
 
-    [TestCase("A X", 1)]
-    [TestCase("A Y", 2)]
-    [TestCase("A Z", 3)]
-    public void TestCalculateLinePickScore(string line, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLinePickScore(line));
+    [TestCase("A Y", MatchFormat.PickAndPick, 2)]
+    [TestCase("A Y", MatchFormat.PickAndResult, 1)]
+    [TestCase("B X", MatchFormat.PickAndPick, 1)]
+    [TestCase("B X", MatchFormat.PickAndResult, 1)]
+    [TestCase("C Z", MatchFormat.PickAndPick, 3)]
+    [TestCase("C Z", MatchFormat.PickAndResult, 1)]
+    public void TestCalculateLinePickScore(string line, MatchFormat format, int expected) {
+        Assert.AreEqual(expected, Program.CalculateLinePickScore(line, format));
     }
 
-    [TestCase("A Y", 6)]
-    [TestCase("B X", 0)]
-    [TestCase("C Z", 3)]
-    public void TestCalculateLineWinScore(string line, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLineWinScore(line));
+    [TestCase("A Y", MatchFormat.PickAndPick, 6)]
+    [TestCase("A Y", MatchFormat.PickAndResult, 3)]
+    [TestCase("B X", MatchFormat.PickAndPick, 0)]
+    [TestCase("B X", MatchFormat.PickAndResult, 0)]
+    [TestCase("C Z", MatchFormat.PickAndPick, 3)]
+    [TestCase("C Z", MatchFormat.PickAndResult, 6)]
+    public void TestCalculateLineWinScore(string line, MatchFormat format, int expected) {
+        Assert.AreEqual(expected, Program.CalculateLineWinScore(line, format));
     }
 
-    [TestCase("example.txt", 15)]
-    public void TestCalculateTotalScore(string file, int expected) {
-        Assert.AreEqual(expected, Program.CalculateTotalScore(file));
+    [TestCase("example.txt", MatchFormat.PickAndPick, 15)]
+    public void TestCalculateTotalScore(string file, MatchFormat format, int expected) {
+        Assert.AreEqual(expected, Program.CalculateTotalScore(file, format));
     }
 
-    [Test]
-    public void CalculateTotalScore() {
-        Assert.Pass($"Total Score: {Program.CalculateTotalScore("input.txt")}");
+    [TestCase(MatchFormat.PickAndPick)]
+    [TestCase(MatchFormat.PickAndResult)]
+    public void CalculateTotalScore(MatchFormat format) {
+        Assert.Pass($"Total Score: {Program.CalculateTotalScore("input.txt", format)}");
     }
 }
