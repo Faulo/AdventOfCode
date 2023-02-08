@@ -1,12 +1,12 @@
 using NUnit.Framework;
 
-namespace AdventOfCode.Year2023;
+namespace Day01;
 
-public class UnstableDiffusionTest {
-
+[TestFixture(TestOf = typeof(Program))]
+public class ProgramTest {
     [TestCase("example.txt")]
     public void InputParsing(string file) {
-        var input = new[] {
+        string[] expected = new[] {
             "1000",
             "2000",
             "3000", // 6000
@@ -22,5 +22,12 @@ public class UnstableDiffusionTest {
             "",
             "10000" // 10000
         };
+
+        CollectionAssert.AreEqual(expected, Program.ReadFileToArray(file));
+    }
+
+    [Test]
+    public void ProcessInput() {
+        Assert.Pass($"Calories: {Program.CountCalories("input.txt")}");
     }
 }
