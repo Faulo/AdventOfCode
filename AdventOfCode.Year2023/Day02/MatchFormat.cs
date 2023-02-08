@@ -1,6 +1,6 @@
-﻿namespace Day02 {
-    enum MatchFormat {
-        PickAndPick,
-        PickAndResult,
-    }
+﻿namespace Day02;
+
+enum MatchFormat {
+    PickAndPick,
+    PickAndResult,
 }

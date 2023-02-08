@@ -8,7 +8,7 @@ class CalorieCount {
             .Max();
     }
 
-    public static object FindSumOfTopThreeCalories(string file) {
+    public static int FindSumOfTopThreeCalories(string file) {
         return ReadFileToElf(file)
             .OrderByDescending(v => v)
             .Take(3)
