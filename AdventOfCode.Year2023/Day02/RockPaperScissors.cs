@@ -1,6 +1,6 @@
 ﻿namespace Day02;
 
-class Program {
+class RockPaperScissors {
     const string INPUT_FOLDER = "input";
 
     public static IEnumerable<string> ReadFileToArray(string file) {

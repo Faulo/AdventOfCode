@@ -2,7 +2,7 @@
 
 namespace Day02;
 
-class ProgramTest {
+class RockPaperSchissorsTest {
     [TestCase(
         "example.txt",
         "A Y",
@@ -10,7 +10,7 @@ class ProgramTest {
         "C Z"
     )]
     public void TestReadFileToArray(string file, params string[] expected) {
-        CollectionAssert.AreEqual(expected, Program.ReadFileToArray(file));
+        CollectionAssert.AreEqual(expected, RockPaperScissors.ReadFileToArray(file));
     }
 
     [TestCase("A Y", MatchFormat.PickAndPick, 8)]
@@ -20,7 +20,7 @@ class ProgramTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 6)]
     [TestCase("C Z", MatchFormat.PickAndResult, 7)]
     public void TestCalculateLineScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLineScore(line, format));
+        Assert.AreEqual(expected, RockPaperScissors.CalculateLineScore(line, format));
     }
 
     [TestCase("A Y", MatchFormat.PickAndPick, 2)]
@@ -30,7 +30,7 @@ class ProgramTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 3)]
     [TestCase("C Z", MatchFormat.PickAndResult, 1)]
     public void TestCalculateLinePickScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLinePickScore(line, format));
+        Assert.AreEqual(expected, RockPaperScissors.CalculateLinePickScore(line, format));
     }
 
     [TestCase("A Y", MatchFormat.PickAndPick, 6)]
@@ -40,17 +40,17 @@ class ProgramTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 3)]
     [TestCase("C Z", MatchFormat.PickAndResult, 6)]
     public void TestCalculateLineWinScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, Program.CalculateLineWinScore(line, format));
+        Assert.AreEqual(expected, RockPaperScissors.CalculateLineWinScore(line, format));
     }
 
     [TestCase("example.txt", MatchFormat.PickAndPick, 15)]
     public void TestCalculateTotalScore(string file, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, Program.CalculateTotalScore(file, format));
+        Assert.AreEqual(expected, RockPaperScissors.CalculateTotalScore(file, format));
     }
 
     [TestCase(MatchFormat.PickAndPick)]
     [TestCase(MatchFormat.PickAndResult)]
     public void CalculateTotalScore(MatchFormat format) {
-        Assert.Pass($"Total Score: {Program.CalculateTotalScore("input.txt", format)}");
+        Assert.Pass($"Total Score: {RockPaperScissors.CalculateTotalScore("input.txt", format)}");
     }
 }
