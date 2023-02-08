@@ -5,7 +5,7 @@ namespace Day01;
 [TestFixture(TestOf = typeof(Program))]
 public class ProgramTest {
     [TestCase("example.txt")]
-    public void InputParsing(string file) {
+    public void TestReadFileToArray(string file) {
         string[] expected = new[] {
             "1000",
             "2000",
@@ -26,8 +26,31 @@ public class ProgramTest {
         CollectionAssert.AreEqual(expected, Program.ReadFileToArray(file));
     }
 
+    [TestCase("example.txt")]
+    public void ReadFileToElf(string file) {
+        int[] expected = new[] {
+            6000,
+            4000,
+            11000,
+            24000,
+            10000
+        };
+
+        CollectionAssert.AreEqual(expected, Program.ReadFileToElf(file));
+    }
+
+    [TestCase("example.txt", 24000)]
+    public void CountCalories(string file, int expected) {
+        Assert.AreEqual(expected, Program.FindMostCalories(file));
+    }
+
     [Test]
-    public void ProcessInput() {
-        Assert.Pass($"Calories: {Program.CountCalories("input.txt")}");
+    public void FindMostCalories() {
+        Assert.Pass($"Calories: {Program.FindMostCalories("input.txt")}");
+    }
+
+    [Test]
+    public void FindSumOfTopThreeCalories() {
+        Assert.Pass($"Calories: {Program.FindSumOfTopThreeCalories("input.txt")}");
     }
 }
