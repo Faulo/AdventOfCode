@@ -1,6 +1,6 @@
 ﻿namespace Day04;
 
-class CampCleanup {
+static class CampCleanup {
     const string INPUT_FOLDER = "input";
 
     public static IEnumerable<string> ReadFileToArray(string file) {
@@ -18,13 +18,28 @@ class CampCleanup {
     }
 
     public static bool DoSectionsOverlapCompletely((int start, int stop) section1, (int start, int stop) section2) {
-        return (section1.start >= section2.start && section1.stop <= section2.stop)
-            || (section2.start >= section1.start && section2.stop <= section1.stop);
+        return (section1.Contains(section2.start) && section1.Contains(section2.stop))
+            || (section2.Contains(section1.start) && section2.Contains(section1.stop));
+    }
+
+    public static bool DoSectionsOverlap((int start, int stop) section1, (int start, int stop) section2) {
+        return section1.Contains(section2.start) || section1.Contains(section2.stop)
+            || section2.Contains(section1.start) || section2.Contains(section1.stop);
+    }
+
+    static bool Contains(this (int start, int stop) section, int id) {
+        return section.start <= id && id <= section.stop;
+    }
+
+    public static int SumOfCompletelyOverlappingSections(string file) {
+        return ReadFileToArray(file)
+            .Select(DivideIntoSections)
+            .Count(sections => DoSectionsOverlapCompletely(sections.Item1, sections.Item2));
     }
 
     public static int SumOfOverlappingSections(string file) {
         return ReadFileToArray(file)
             .Select(DivideIntoSections)
-            .Count(sections => DoSectionsOverlapCompletely(sections.Item1, sections.Item2));
+            .Count(sections => DoSectionsOverlap(sections.Item1, sections.Item2));
     }
 }
