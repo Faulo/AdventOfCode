@@ -38,4 +38,39 @@ class RucksackReorganization {
             .Select(GetLetterPriority)
             .Sum();
     }
+
+    public static char FindGroupLetter(string first, string second, string third) {
+        for (int i = 0; i < first.Length; i++) {
+            char letter = first[i];
+            for (int j = 0; j < second.Length; j++) {
+                if (letter == second[j]) {
+                    for (int k = 0; k < third.Length; k++) {
+                        if (letter == third[k]) {
+                            return letter;
+                        }
+                    }
+                }
+            }
+        }
+
+        throw new Exception("No letter appeared in all!");
+    }
+
+    public static IEnumerable<(string first, string second, string third)> DivideIntoGroups(string file) {
+        var list = new List<string>();
+        foreach (string line in ReadFileToArray(file)) {
+            list.Add(line);
+            if (list.Count == 3) {
+                yield return (list[0], list[1], list[2]);
+                list.Clear();
+            }
+        }
+    }
+
+    public static int SumOfPriorityOfGroup(string file) {
+        return DivideIntoGroups(file)
+            .Select(group => FindGroupLetter(group.first, group.second, group.third))
+            .Select(GetLetterPriority)
+            .Sum();
+    }
 }

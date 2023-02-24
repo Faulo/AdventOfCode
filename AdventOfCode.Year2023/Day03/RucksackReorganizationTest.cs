@@ -29,4 +29,20 @@ class RucksackReorganizationTest {
     public void TestSumOfPriorityOfLettersThatAppearInBothCompartmentsOfFile(string file, int sum) {
         Assert.AreEqual(sum, RucksackReorganization.SumOfPriorityOfLettersThatAppearInBothCompartmentsOfFile(file));
     }
+
+    [TestCase("vJrwpWtwJgWrhcsFMMfFFhFp", "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL", "PmmdzqPrVvPwwTWBwg", 'r')]
+    [TestCase("wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn", "ttgJtRGJQctTZtZT", "CrZsJsPPZsGzwwsLwLmpwMDw", 'Z')]
+    public void TestFindGroupLetter(string first, string second, string third, char letter) {
+        Assert.AreEqual(letter, RucksackReorganization.FindGroupLetter(first, second, third));
+    }
+
+    [TestCase("example.txt", 2)]
+    public void TestDivideIntoGroups(string file, int count) {
+        Assert.AreEqual(count, RucksackReorganization.DivideIntoGroups(file).Count());
+    }
+
+    [TestCase("example.txt", 70)]
+    public void TestSumOfPriorityOfGroup(string file, int sum) {
+        Assert.AreEqual(sum, RucksackReorganization.SumOfPriorityOfGroup(file));
+    }
 }
