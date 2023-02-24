@@ -25,4 +25,17 @@ class RucksackReorganization {
 
         throw new Exception("No letter appeared in both!");
     }
+
+    public static int GetLetterPriority(char letter) {
+        return letter is >= 'a' and <= 'z'
+            ? letter - 'a' + 1
+            : letter - 'A' + 27;
+    }
+
+    public static int SumOfPriorityOfLettersThatAppearInBothCompartmentsOfFile(string file) {
+        return ReadFileToArray(file)
+            .Select(FindLetterThatAppearsInBothCompartments)
+            .Select(GetLetterPriority)
+            .Sum();
+    }
 }
