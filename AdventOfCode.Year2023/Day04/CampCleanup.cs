@@ -3,11 +3,11 @@
 static class CampCleanup {
     const string INPUT_FOLDER = "input";
 
-    public static IEnumerable<string> ReadFileToArray(string file) {
+    internal static IEnumerable<string> ReadFileToArray(string file) {
         return File.ReadLines(Path.Combine(INPUT_FOLDER, file));
     }
 
-    public static ((int, int), (int, int)) DivideIntoSections(string line) {
+    internal static ((int, int), (int, int)) DivideIntoSections(string line) {
         string[] sections = line.Split(',');
         return (DivideSection(sections[0]), DivideSection(sections[1]));
     }
@@ -17,12 +17,12 @@ static class CampCleanup {
         return (int.Parse(ids[0]), int.Parse(ids[1]));
     }
 
-    public static bool DoSectionsOverlapCompletely((int start, int stop) section1, (int start, int stop) section2) {
+    internal static bool DoSectionsOverlapCompletely((int start, int stop) section1, (int start, int stop) section2) {
         return (section1.Contains(section2.start) && section1.Contains(section2.stop))
             || (section2.Contains(section1.start) && section2.Contains(section1.stop));
     }
 
-    public static bool DoSectionsOverlap((int start, int stop) section1, (int start, int stop) section2) {
+    internal static bool DoSectionsOverlap((int start, int stop) section1, (int start, int stop) section2) {
         return section1.Contains(section2.start) || section1.Contains(section2.stop)
             || section2.Contains(section1.start) || section2.Contains(section1.stop);
     }
@@ -31,13 +31,13 @@ static class CampCleanup {
         return section.start <= id && id <= section.stop;
     }
 
-    public static int SumOfCompletelyOverlappingSections(string file) {
+    internal static int SumOfCompletelyOverlappingSections(string file) {
         return ReadFileToArray(file)
             .Select(DivideIntoSections)
             .Count(sections => DoSectionsOverlapCompletely(sections.Item1, sections.Item2));
     }
 
-    public static int SumOfOverlappingSections(string file) {
+    internal static int SumOfOverlappingSections(string file) {
         return ReadFileToArray(file)
             .Select(DivideIntoSections)
             .Count(sections => DoSectionsOverlap(sections.Item1, sections.Item2));

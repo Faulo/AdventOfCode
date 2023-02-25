@@ -3,23 +3,23 @@
 class RockPaperScissors {
     const string INPUT_FOLDER = "input";
 
-    public static IEnumerable<string> ReadFileToArray(string file) {
+    internal static IEnumerable<string> ReadFileToArray(string file) {
         return File.ReadLines(Path.Combine(INPUT_FOLDER, file));
     }
 
-    public static int CalculateTotalScore(string file, MatchFormat format) {
+    internal static int CalculateTotalScore(string file, MatchFormat format) {
         return ReadFileToArray(file)
             .Sum(line => CalculateLineScore(line, format));
     }
 
-    public static int CalculateLineScore(string line, MatchFormat format) {
+    internal static int CalculateLineScore(string line, MatchFormat format) {
         return CalculateLinePickScore(line, format) + CalculateLineWinScore(line, format);
     }
 
     const int SCORE_ROCK = 1;
     const int SCORE_PAPER = 2;
     const int SCORE_SCISSORS = 3;
-    public static int CalculateLinePickScore(string line, MatchFormat format) {
+    internal static int CalculateLinePickScore(string line, MatchFormat format) {
         return format switch {
             MatchFormat.PickAndPick => line.Split(' ') switch {
                 [_, "X"] => SCORE_ROCK,
@@ -48,7 +48,7 @@ class RockPaperScissors {
     const int SCORE_WIN = 6;
     const int SCORE_DRAW = 3;
     const int SCORE_LOSS = 0;
-    public static int CalculateLineWinScore(string line, MatchFormat format) {
+    internal static int CalculateLineWinScore(string line, MatchFormat format) {
         return format switch {
             MatchFormat.PickAndPick => line switch {
                 "A X" => SCORE_DRAW,

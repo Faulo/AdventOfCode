@@ -5,9 +5,9 @@ class NoSpaceLeftOnDevice {
 
     readonly string path;
 
-    public NoSpaceLeftOnDevice(string file) {
+    internal NoSpaceLeftOnDevice(string file) {
         path = Path.Combine(INPUT_FOLDER, file);
     }
 
-    public int FindTotalSizeOfSmallDirectories() => throw new NotImplementedException();
+    internal int FindTotalSizeOfSmallDirectories() => throw new NotImplementedException();
 }

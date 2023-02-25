@@ -3,13 +3,13 @@
 class TuningTrouble {
     const string INPUT_FOLDER = "input";
 
-    public static char[] ReadFile(string file) {
+    internal static char[] ReadFile(string file) {
         return File.ReadAllText(Path.Combine(INPUT_FOLDER, file)).Trim().ToCharArray();
     }
 
-    public static int FindStartInFile(string file, MessageType type) => FindStart(ReadFile(file), type);
+    internal static int FindStartInFile(string file, MessageType type) => FindStart(ReadFile(file), type);
 
-    public static int FindStart(char[] data, MessageType type) {
+    internal static int FindStart(char[] data, MessageType type) {
         var dict = new Dictionary<char, short>();
         int length = type switch {
             MessageType.StartOfPacket => 4,
