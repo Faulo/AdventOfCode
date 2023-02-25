@@ -1,2 +1,3 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using Day07;
+
+Console.WriteLine($"{nameof(NoSpaceLeftOnDevice.FindTotalSizeOfSmallDirectories)}: {new NoSpaceLeftOnDevice("input.txt").FindTotalSizeOfSmallDirectories()}");

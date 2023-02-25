@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Day07;
+﻿namespace Day07;
 
 class NoSpaceLeftOnDevice {
+    const string INPUT_FOLDER = "input";
+
+    readonly string path;
+
+    public NoSpaceLeftOnDevice(string file) {
+        path = Path.Combine(INPUT_FOLDER, file);
+    }
+
+    public int FindTotalSizeOfSmallDirectories() => throw new NotImplementedException();
 }

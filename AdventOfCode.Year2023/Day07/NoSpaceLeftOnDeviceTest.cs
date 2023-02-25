@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NUnit.Framework;
 
 namespace Day07;
 
 class NoSpaceLeftOnDeviceTest {
+    readonly NoSpaceLeftOnDevice program = new("example.txt");
 
+    [Test]
+    public void TestFindTotalSizeOfSmallDirectories() {
+        Assert.AreEqual(95437, program.FindTotalSizeOfSmallDirectories());
+    }
 }
