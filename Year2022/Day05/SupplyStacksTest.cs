@@ -6,24 +6,24 @@ class SupplyStacksTest {
     [TestCase("example.txt", 3)]
     [TestCase("input.txt", 9)]
     public void TestParseStackCount(string file, int count) {
-        Assert.AreEqual(count, SupplyStacks.ParseStackCount(file));
+        Assert.AreEqual(count, new SupplyStacks(file).ParseStackCount());
     }
     [TestCase("example.txt", 3)]
     [TestCase("input.txt", 8)]
     public void TestParseStackMaxHeight(string file, int count) {
-        Assert.AreEqual(count, SupplyStacks.ParseStackMaxHeight(file));
+        Assert.AreEqual(count, new SupplyStacks(file).ParseStackMaxHeight());
     }
 
     [TestCase("example.txt")]
     public void TestParseStacksMatchesStackCount(string file) {
-        Assert.AreEqual(SupplyStacks.ParseStackCount(file), SupplyStacks.ParseStacks(file).Count);
+        Assert.AreEqual(new SupplyStacks(file).ParseStackCount(), new SupplyStacks(file).ParseStacks().Count);
     }
 
     [TestCase("example.txt", 1, "ZN")]
     [TestCase("example.txt", 2, "MCD")]
     [TestCase("example.txt", 3, "P")]
     public void TestParseStacks(string file, int index, string stack) {
-        var stacks = SupplyStacks.ParseStacks(file);
+        var stacks = new SupplyStacks(file).ParseStacks();
 
         CollectionAssert.AreEqual(new Stack<char>(stack.ToCharArray()), stacks[index]);
     }
@@ -31,7 +31,7 @@ class SupplyStacksTest {
     [TestCase("example.txt", 0, 1, 2, 1)]
     [TestCase("example.txt", 1, 3, 1, 3)]
     public void TestParseMoves(string file, int index, int amount, int source, int target) {
-        var moves = SupplyStacks.ParseMoves(file);
+        var moves = new SupplyStacks(file).ParseMoves();
 
         Assert.AreEqual((amount, source, target), moves.ElementAt(index));
     }
@@ -89,12 +89,12 @@ class SupplyStacksTest {
 
     [TestCase("example.txt", 1, "DCP", Model.CrateMover9000)]
     public void TestExecuteExampleMovesAfter(string file, int moveCount, string expected, Model model) {
-        Assert.AreEqual(expected, SupplyStacks.ExecuteAndPrint(file, moveCount, model));
+        Assert.AreEqual(expected, new SupplyStacks(file, model).ExecuteAndPrint(moveCount));
     }
 
     [TestCase("example.txt", "CMZ", Model.CrateMover9000)]
     [TestCase("example.txt", "MCD", Model.CrateMover9001)]
     public void TestExecuteExampleMoves(string file, string expected, Model model) {
-        Assert.AreEqual(expected, SupplyStacks.ExecuteAndPrint(file, model: model));
+        Assert.AreEqual(expected, new SupplyStacks(file, model).ExecuteAndPrint());
     }
 }

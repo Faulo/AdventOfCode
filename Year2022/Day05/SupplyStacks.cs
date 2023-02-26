@@ -1,17 +1,24 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using Utilities;
 
 namespace Day05;
 
 class SupplyStacks {
-    const string INPUT_FOLDER = "input";
+    readonly FileInput input;
+    readonly Model model;
 
-    internal static IEnumerable<string> ReadFileToArray(string file) {
-        return File.ReadLines(Path.Combine(INPUT_FOLDER, file));
+    internal SupplyStacks(string file, Model model = Model.CrateMover9000) {
+        input = new(file);
+        this.model = model;
     }
 
-    internal static int ParseStackCount(string file) {
-        foreach (string line in ReadFileToArray(file)) {
+    internal IEnumerable<string> ReadFileToArray() {
+        return input.ReadLines();
+    }
+
+    internal int ParseStackCount() {
+        foreach (string line in ReadFileToArray()) {
             var matches = Regex.Matches(line, "\\d+");
             if (matches.Count > 0) {
                 return matches.Count;
@@ -20,9 +27,9 @@ class SupplyStacks {
         throw new Exception("Failed to find any integers");
     }
 
-    internal static int ParseStackMaxHeight(string file) {
+    internal int ParseStackMaxHeight() {
         int height = 0;
-        foreach (string line in ReadFileToArray(file)) {
+        foreach (string line in ReadFileToArray()) {
             var matches = Regex.Matches(line, "\\d+");
             if (matches.Count > 0) {
                 return height;
@@ -32,14 +39,14 @@ class SupplyStacks {
         throw new Exception("Failed to find any integers");
     }
 
-    internal static Dictionary<int, Stack<char>> ParseStacks(string file) {
+    internal Dictionary<int, Stack<char>> ParseStacks() {
         var stacks = new Dictionary<int, List<char>>();
-        int count = ParseStackCount(file);
-        int maxHeight = ParseStackMaxHeight(file);
+        int count = ParseStackCount();
+        int maxHeight = ParseStackMaxHeight();
         for (int i = 1; i <= count; i++) {
             stacks[i] = new();
         }
-        foreach (string line in ReadFileToArray(file).Take(maxHeight)) {
+        foreach (string line in ReadFileToArray().Take(maxHeight)) {
             int cursor = 1;
             for (int i = 1; i <= count; i++) {
                 char letter = line.Length > cursor
@@ -57,15 +64,27 @@ class SupplyStacks {
         return stacks.ToDictionary(keyval => keyval.Key, keyval => new Stack<char>(keyval.Value));
     }
 
-    internal static IEnumerable<(int amount, int source, int target)> ParseMoves(string file) {
-        int count = ParseStackCount(file);
-        int maxHeight = ParseStackMaxHeight(file);
-        foreach (string line in ReadFileToArray(file).Skip(maxHeight + 2)) {
+    internal IEnumerable<(int amount, int source, int target)> ParseMoves() {
+        int count = ParseStackCount();
+        int maxHeight = ParseStackMaxHeight();
+        foreach (string line in ReadFileToArray().Skip(maxHeight + 2)) {
             var matches = Regex.Matches(line, "\\d+");
             if (matches.Count == 3) {
                 yield return (int.Parse(matches[0].Value), int.Parse(matches[1].Value), int.Parse(matches[2].Value));
             }
         }
+    }
+
+    internal string ExecuteAndPrint(int? moveCount = null) {
+        var stacks = ParseStacks();
+        var moves = ParseMoves();
+        if (moveCount.HasValue) {
+            moves = moves.Take(moveCount.Value);
+        }
+        foreach (var move in moves) {
+            Execute(move, stacks, model);
+        }
+        return PrintStacks(stacks);
     }
 
     internal static void Execute((int amount, int source, int target) move, Dictionary<int, Stack<char>> stacks, Model model = Model.CrateMover9000) {
@@ -96,17 +115,5 @@ class SupplyStacks {
             builder.Append(stack.Count == 0 ? ' ' : stack.Peek());
         }
         return builder.ToString();
-    }
-
-    internal static string ExecuteAndPrint(string file, int? moveCount = null, Model model = Model.CrateMover9000) {
-        var stacks = ParseStacks(file);
-        var moves = ParseMoves(file);
-        if (moveCount.HasValue) {
-            moves = moves.Take(moveCount.Value);
-        }
-        foreach (var move in moves) {
-            Execute(move, stacks, model);
-        }
-        return PrintStacks(stacks);
     }
 }
