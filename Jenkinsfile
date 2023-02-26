@@ -12,11 +12,10 @@ pipeline {
 		stage('Testing') {
 			steps {
 				dir('AdventOfCode.Year2023') {
-					callShell 'dotnet test --logger trx'
-					step([$class: 'MSTestPublisher', testResultsFile:"**/*.trx", failOnError: false, keepLongStdio: true])
+					callShell 'dotnet test --logger junit'
+					junit(testResults: '**/report.xml', allowEmptyResults: true)
 				}
 			}
 		}
-		
 	}
 }
