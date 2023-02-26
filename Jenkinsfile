@@ -2,67 +2,213 @@ pipeline {
 	agent any
 
 	stages {
-		stage('Building') {
-			steps {
-				dir('AdventOfCode.Year2022') {
-					callShell 'dotnet build'
-				}
+		stage('Year 2022') {
+			environment {
+				SOLUTION = 'AdventOfCode.Year2022'
 			}
-		}
-		stage('Testing') {
-			steps {
-				dir('AdventOfCode.Year2022') {
-					sh(script: 'dotnet test --logger junit', returnStatus: true)
-					junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+			parallel {
+				stage('Day 01') {
+					environment {
+						PROJECT = 'Day01'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 01') {
-			steps {
-				dir('AdventOfCode.Year2022/Day01') {
-					callShell 'dotnet run'
+				stage('Day 02') {
+					environment {
+						PROJECT = 'Day02'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 02') {
-			steps {
-				dir('AdventOfCode.Year2022/Day02') {
-					callShell 'dotnet run'
+				stage('Day 03') {
+					environment {
+						PROJECT = 'Day03'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 03') {
-			steps {
-				dir('AdventOfCode.Year2022/Day03') {
-					callShell 'dotnet run'
+				stage('Day 04') {
+					environment {
+						PROJECT = 'Day04'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 04') {
-			steps {
-				dir('AdventOfCode.Year2022/Day04') {
-					callShell 'dotnet run'
+				stage('Day 05') {
+					environment {
+						PROJECT = 'Day05'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 05') {
-			steps {
-				dir('AdventOfCode.Year2022/Day05') {
-					callShell 'dotnet run'
+				stage('Day 06') {
+					environment {
+						PROJECT = 'Day06'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
-			}
-		}
-		stage('Running: Year 2022, Day 06') {
-			steps {
-				dir('AdventOfCode.Year2022/Day06') {
-					callShell 'dotnet run'
-				}
-			}
-		}
-		stage('Running: Year 2022, Day 07') {
-			steps {
-				dir('AdventOfCode.Year2022/Day07') {
-					callShell 'dotnet run'
+				stage('Day 07') {
+					environment {
+						PROJECT = 'Day07'
+					}
+					stages {
+						stage('Build') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet build'
+								}
+							}
+						}
+						stage('Test') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									sh(script: 'dotnet test --logger junit', returnStatus: true)
+									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+								}
+							}
+						}
+						stage('Run') {
+							steps {
+								dir("${env.SOLUTION}/${env.PROJECT}") {
+									callShell 'dotnet run'
+								}
+							}
+						}
+					}
 				}
 			}
 		}
