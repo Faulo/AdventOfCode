@@ -13,7 +13,7 @@ pipeline {
 			steps {
 				dir('AdventOfCode.Year2023') {
 					callShell 'dotnet test --logger junit'
-					junit(testResults: '**/report.xml', allowEmptyResults: true)
+					junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 				}
 			}
 		}
