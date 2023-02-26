@@ -1,5 +1,5 @@
 ﻿using Day06;
 
-Console.WriteLine($"{nameof(TuningTrouble.FindStartInFile)}: {TuningTrouble.FindStartInFile("input.txt", MessageType.StartOfPacket)}");
+Console.WriteLine($"{nameof(TuningTrouble.FindStartInFile)}: {new TuningTrouble("input.txt").FindStartInFile(MessageType.StartOfPacket)}");
 
-Console.WriteLine($"{nameof(TuningTrouble.FindStartInFile)}: {TuningTrouble.FindStartInFile("input.txt", MessageType.StartOfMessage)}");
+Console.WriteLine($"{nameof(TuningTrouble.FindStartInFile)}: {new TuningTrouble("input.txt").FindStartInFile(MessageType.StartOfMessage)}");

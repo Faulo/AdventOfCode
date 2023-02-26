@@ -1,13 +1,21 @@
-﻿namespace Day06;
+﻿using Utilities;
+
+namespace Day06;
 
 class TuningTrouble {
-    const string INPUT_FOLDER = "input";
+    readonly FileInput input;
 
-    internal static char[] ReadFile(string file) {
-        return File.ReadAllText(Path.Combine(INPUT_FOLDER, file)).Trim().ToCharArray();
+    internal TuningTrouble(string file) {
+        input = new(file);
     }
 
-    internal static int FindStartInFile(string file, MessageType type) => FindStart(ReadFile(file), type);
+    internal char[] ReadFile() {
+        return input.ReadAllCharacters();
+    }
+
+    internal int FindStartInFile(MessageType type) {
+        return FindStart(ReadFile(), type);
+    }
 
     internal static int FindStart(char[] data, MessageType type) {
         var dict = new Dictionary<char, short>();

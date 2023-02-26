@@ -1,12 +1,12 @@
-﻿namespace Day07;
+﻿using Utilities;
+
+namespace Day07;
 
 class NoSpaceLeftOnDevice {
-    const string INPUT_FOLDER = "input";
-
-    readonly string path;
+    readonly FileInput input;
 
     internal NoSpaceLeftOnDevice(string file) {
-        path = Path.Combine(INPUT_FOLDER, file);
+        input = new(file);
     }
 
     internal int FindTotalSizeOfSmallDirectories() => throw new NotImplementedException();

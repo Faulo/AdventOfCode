@@ -17,12 +17,12 @@ class TuningTroubleTest {
 
     [TestCase("example.txt", "mjqjpqmgbljsphdztnvjfqwrcgsmlb")]
     public void TestParseMoves(string file, string data) {
-        Assert.AreEqual(data.ToCharArray(), TuningTrouble.ReadFile(file));
+        Assert.AreEqual(data.ToCharArray(), new TuningTrouble(file).ReadFile());
     }
 
     [TestCase("example.txt", MessageType.StartOfPacket, 7)]
     [TestCase("example.txt", MessageType.StartOfMessage, 19)]
     public void TestFindStartInFile(string file, MessageType type, int expected) {
-        Assert.AreEqual(expected, TuningTrouble.FindStartInFile(file, type));
+        Assert.AreEqual(expected, new TuningTrouble(file).FindStartInFile(type));
     }
 }
