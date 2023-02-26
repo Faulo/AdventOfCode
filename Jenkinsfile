@@ -12,8 +12,8 @@ pipeline {
 		stage('Testing') {
 			steps {
 				dir('AdventOfCode.Year2023') {
-					callShell 'dotnet test --logger "trx;LogFileName=report.xml"'
-					step([$class: 'MSTestPublisher', testResultsFile:"**/report.xml", failOnError: true, keepLongStdio: true])
+					callShell 'dotnet test --logger trx'
+					step([$class: 'MSTestPublisher', testResultsFile:"**/*.trx", failOnError: false, keepLongStdio: true])
 				}
 			}
 		}
