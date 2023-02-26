@@ -12,7 +12,7 @@ pipeline {
 		stage('Testing') {
 			steps {
 				dir('AdventOfCode.Year2022') {
-					callShell 'dotnet test --logger junit'
+					sh(script: 'dotnet test --logger junit', returnStatus: true)
 					junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 				}
 			}
