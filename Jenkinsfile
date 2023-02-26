@@ -17,12 +17,12 @@ node {
 			if (fileExists(path)) {
 				stage(path) {
 					dir(path) {
-						callShell 'dotnet build'
+						sh 'dotnet build'
 						
 						sh(script: 'dotnet test --logger junit', returnStatus: true)
 						junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 						
-						callShell 'dotnet run'
+						sh 'dotnet run'
 					}
 				}
 			}
