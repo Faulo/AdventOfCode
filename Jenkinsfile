@@ -1,213 +1,28 @@
-pipeline {
-	agent any
-
-	stages {
-		stage('Year 2022') {
-			environment {
-				SOLUTION = 'AdventOfCode.Year2022'
-			}
-			parallel {
-				stage('Day 01') {
-					environment {
-						PROJECT = 'Day01'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 02') {
-					environment {
-						PROJECT = 'Day02'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 03') {
-					environment {
-						PROJECT = 'Day03'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 04') {
-					environment {
-						PROJECT = 'Day04'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 05') {
-					environment {
-						PROJECT = 'Day05'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 06') {
-					environment {
-						PROJECT = 'Day06'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
-					}
-				}
-				stage('Day 07') {
-					environment {
-						PROJECT = 'Day07'
-					}
-					stages {
-						stage('Build') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet build'
-								}
-							}
-						}
-						stage('Test') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									sh(script: 'dotnet test --logger junit', returnStatus: true)
-									junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-								}
-							}
-						}
-						stage('Run') {
-							steps {
-								dir("${env.SOLUTION}/${env.PROJECT}") {
-									callShell 'dotnet run'
-								}
-							}
-						}
+node {
+	checkout scm
+	
+	def solutions = [
+		'Year2015', 'Year2016', 'Year2017', 'Year2018', 'Year2019', 'Year2020', 'Year2021', 'Year2022'
+	]
+	
+	def projects = [
+		'Day01', 'Day02', 'Day03', 'Day04', 'Day05', 'Day06', 'Day07', 'Day08', 'Day09', 'Day10',
+		'Day11', 'Day12', 'Day13', 'Day14', 'Day15', 'Day16', 'Day17', 'Day18', 'Day19', 'Day20',
+		'Day21', 'Day22', 'Day23', 'Day24', 'Day25'
+	]
+	
+	for (solution in solutions) {
+		for (project in projects) {
+			def path = "${solution}/${project}"
+			if (fileExists(path)) {
+				stage(path) {
+					dir(path) {
+						callShell 'dotnet build'
+						
+						sh(script: 'dotnet test --logger junit', returnStatus: true)
+						junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+						
+						callShell 'dotnet run'
 					}
 				}
 			}
