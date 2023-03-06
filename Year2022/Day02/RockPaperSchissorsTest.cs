@@ -44,13 +44,10 @@ class RockPaperSchissorsTest {
     }
 
     [TestCase("example.txt", MatchFormat.PickAndPick, 15)]
+    [TestCase("example.txt", MatchFormat.PickAndResult, 12)]
+    [TestCase("input.txt", MatchFormat.PickAndPick, 17189)]
+    [TestCase("input.txt", MatchFormat.PickAndResult, 13490)]
     public void TestCalculateTotalScore(string file, MatchFormat format, int expected) {
         Assert.AreEqual(expected, RockPaperScissors.CalculateTotalScore(file, format));
-    }
-
-    [TestCase(MatchFormat.PickAndPick)]
-    [TestCase(MatchFormat.PickAndResult)]
-    public void CalculateTotalScore(MatchFormat format) {
-        Assert.Pass($"Total Score: {RockPaperScissors.CalculateTotalScore("input.txt", format)}");
     }
 }

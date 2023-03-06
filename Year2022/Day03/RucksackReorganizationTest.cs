@@ -26,6 +26,7 @@ class RucksackReorganizationTest {
     }
 
     [TestCase("example.txt", 157)]
+    [TestCase("input.txt", 7785)]
     public void TestSumOfPriorityOfLettersThatAppearInBothCompartmentsOfFile(string file, int sum) {
         Assert.AreEqual(sum, RucksackReorganization.SumOfPriorityOfLettersThatAppearInBothCompartmentsOfFile(file));
     }
@@ -42,6 +43,7 @@ class RucksackReorganizationTest {
     }
 
     [TestCase("example.txt", 70)]
+    [TestCase("input.txt", 2633)]
     public void TestSumOfPriorityOfGroup(string file, int sum) {
         Assert.AreEqual(sum, RucksackReorganization.SumOfPriorityOfGroup(file));
     }
