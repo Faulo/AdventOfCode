@@ -16,6 +16,7 @@ class CampCleanupTest {
     }
 
     [TestCase("example.txt", 2)]
+    [TestCase("input.txt", 567)]
     public void TestSumOfCompletelyOverlappingSections(string file, int count) {
         Assert.AreEqual(count, CampCleanup.SumOfCompletelyOverlappingSections(file));
     }
@@ -31,6 +32,7 @@ class CampCleanupTest {
     }
 
     [TestCase("example.txt", 4)]
+    [TestCase("input.txt", 907)]
     public void TestSumOfOverlappingSections(string file, int count) {
         Assert.AreEqual(count, CampCleanup.SumOfOverlappingSections(file));
     }

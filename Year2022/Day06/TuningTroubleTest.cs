@@ -22,6 +22,8 @@ class TuningTroubleTest {
 
     [TestCase("example.txt", MessageType.StartOfPacket, 7)]
     [TestCase("example.txt", MessageType.StartOfMessage, 19)]
+    [TestCase("input.txt", MessageType.StartOfPacket, 1262)]
+    [TestCase("input.txt", MessageType.StartOfMessage, 3444)]
     public void TestFindStartInFile(string file, MessageType type, int expected) {
         Assert.AreEqual(expected, new TuningTrouble(file).FindStartInFile(type));
     }

@@ -94,6 +94,8 @@ class SupplyStacksTest {
 
     [TestCase("example.txt", "CMZ", Model.CrateMover9000)]
     [TestCase("example.txt", "MCD", Model.CrateMover9001)]
+    [TestCase("input.txt", "QGTHFZBHV", Model.CrateMover9000)]
+    [TestCase("input.txt", "MGDMPSZTM", Model.CrateMover9001)]
     public void TestExecuteExampleMoves(string file, string expected, Model model) {
         Assert.AreEqual(expected, new SupplyStacks(file, model).ExecuteAndPrint());
     }
