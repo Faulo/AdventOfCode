@@ -15,13 +15,15 @@ node('dotnet') {
 		for (project in projects) {
 			def path = "${solution}/${project}"
 			if (fileExists(path)) {
-				stage(path) {
-					dir(path) {
+				dir(path) {
+					stage("${path}: Build") {
 						sh 'dotnet build'
-						
+					}
+					stage("${path}: Test") {
 						sh(script: 'dotnet test --logger junit', returnStatus: true)
 						junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-						
+					}
+					stage("${path}: Run") {
 						sh 'dotnet run'
 					}
 				}
