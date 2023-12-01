@@ -1,4 +1,6 @@
 ﻿
+using Utilities;
+
 namespace Day01;
 
 readonly struct Runtime {
@@ -9,8 +11,23 @@ readonly struct Runtime {
     }
 
     internal static int FindCalibration(string input) {
-        return 0;
+        char[] letters = input.ToArray();
+        string number = FindDigit(letters) + FindDigit(letters.Reverse());
+        return int.Parse(number);
     }
 
-    internal int calibrationSum => 0;
+    static string FindDigit(IEnumerable<char> letters) {
+        foreach (char letter in letters) {
+            if (int.TryParse(letter.ToString(), out int digit)) {
+                return digit.ToString();
+            }
+        }
+
+        throw new Exception();
+    }
+
+    internal int calibrationSum => new FileInput(file)
+        .ReadLines()
+        .Select(FindCalibration)
+        .Sum();
 }
