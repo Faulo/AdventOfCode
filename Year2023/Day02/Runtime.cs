@@ -34,6 +34,16 @@ sealed class Runtime {
         return sum;
     }
 
+    internal int CalculatePower(string file) {
+        int sum = 0;
+        foreach (string line in new FileInput(file).ReadLines()) {
+            var game = ParseLine(line);
+            sum += game.cubes.Values.Aggregate(1, (i, j) => i * j);
+        }
+
+        return sum;
+    }
+
     internal static (int id, IReadOnlyDictionary<string, int> cubes) ParseLine(string line) {
         var match = Regex.Match(line, "Game (\\d+):");
         int id = int.Parse(match.Groups[1].Value);

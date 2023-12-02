@@ -5,10 +5,17 @@ namespace Day02;
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
     [TestCase("example-1.txt", 8)]
-    public void Given12OfEachCube_WhenCalculatePossible_ThenReturn8(string file, int expected) {
+    public void Given12OfEachCube_WhenCalculatePossible_ThenReturn(string file, int expected) {
         var runtime = new Runtime();
 
         Assert.That(runtime.CalculatePossible(file), Is.EqualTo(expected));
+    }
+
+    [TestCase("example-1.txt", 2286)]
+    public void Given12OfEachCube_WhenCalculatePower_ThenReturn(string file, int expected) {
+        var runtime = new Runtime();
+
+        Assert.That(runtime.CalculatePower(file), Is.EqualTo(expected));
     }
 
     [TestCase("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green", 1)]
