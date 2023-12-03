@@ -47,16 +47,16 @@ sealed class Runtime {
         string result = "";
         bool isAdjacent = false;
         for (; x < width; x++) {
-            if (!isAdjacent) {
-                isAdjacent = IsAdjacent(x, y);
-            }
-
             if (!TryGetSymbol(x, y, out symbol)) {
                 break;
             }
 
             if (char.IsDigit(symbol)) {
                 result += symbol;
+
+                if (!isAdjacent) {
+                    isAdjacent = IsAdjacent(x, y);
+                }
             } else {
                 break;
             }
