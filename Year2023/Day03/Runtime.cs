@@ -21,6 +21,20 @@ sealed class Runtime {
             return sum;
         }
     }
+    internal int sumOfAdjacentGears {
+        get {
+            int sum = 0;
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    if (TryGetAdjacentGear(x, y, out int part)) {
+                        sum += part;
+                    }
+                }
+            }
+
+            return sum;
+        }
+    }
 
     internal Runtime(string file) {
         map = new FileInput(file).ReadAllCharactersAsMap();
@@ -38,8 +52,17 @@ sealed class Runtime {
         return true;
     }
 
-    internal bool TryGetAdjacentPart(int x, int y, out int number) {
-        if (TryGetSymbol(x - 1, y, out char symbol) && char.IsDigit(symbol)) {
+    internal bool TryGetAdjacentPart(int x, int y, out int number, bool walkLeft = false) {
+        if (TryGetSymbol(x, y, out char symbol) && !char.IsDigit(symbol)) {
+            number = default;
+            return false;
+        }
+
+        if (TryGetSymbol(x - 1, y, out symbol) && char.IsDigit(symbol)) {
+            if (walkLeft) {
+                return TryGetAdjacentPart(x - 1, y, out number, walkLeft);
+            }
+
             number = default;
             return false;
         }
@@ -55,7 +78,7 @@ sealed class Runtime {
                 result += symbol;
 
                 if (!isAdjacent) {
-                    isAdjacent = IsAdjacent(x, y);
+                    isAdjacent = IsAdjacentToPart(x, y);
                 }
             } else {
                 break;
@@ -69,19 +92,45 @@ sealed class Runtime {
         return isAdjacent;
     }
 
+    internal bool TryGetAdjacentGear(int x, int y, out int gear) {
+        if (!TryGetSymbol(x, y, out char symbol) || symbol != '*') {
+            gear = default;
+            return false;
+        }
+
+        HashSet<int> parts = [];
+        foreach (var offset in neighbors) {
+            if (TryGetAdjacentPart(x + offset.x, y + offset.y, out int part, true)) {
+                parts.Add(part);
+            }
+        }
+
+        if (parts.Count != 2) {
+            gear = default;
+            return false;
+        }
+
+        gear = parts.First() * parts.Last();
+        return true;
+    }
+
     bool IsValid(int x, int y)
         => x >= 0 && x < width
         && y >= 0 && y < height;
 
-    bool IsAdjacent(int x, int y)
-        => IsPart(x + 0, y + 1)
-        || IsPart(x + 1, y + 0)
-        || IsPart(x + 1, y + 1)
-        || IsPart(x + 0, y - 1)
-        || IsPart(x - 1, y + 0)
-        || IsPart(x - 1, y - 1)
-        || IsPart(x + 1, y - 1)
-        || IsPart(x - 1, y + 1);
+    static readonly IEnumerable<(int x, int y)> neighbors = [
+        (+0, +1),
+        (+1, +0),
+        (+1, +1),
+        (+0, -1),
+        (-1, +0),
+        (-1, -1),
+        (+1, -1),
+        (-1, +1),
+    ];
+
+    bool IsAdjacentToPart(int x, int y)
+        => neighbors.Any(offset => IsPart(x + offset.x, y + offset.y));
 
     bool IsPart(int x, int y)
         => TryGetSymbol(x, y, out char symbol)

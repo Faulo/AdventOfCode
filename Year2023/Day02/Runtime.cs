@@ -34,7 +34,7 @@ sealed class Runtime {
         return sum;
     }
 
-    internal int CalculatePower(string file) {
+    internal static int CalculatePower(string file) {
         int sum = 0;
         foreach (string line in new FileInput(file).ReadLines()) {
             var game = ParseLine(line);
@@ -51,7 +51,7 @@ sealed class Runtime {
         var cubes = new Dictionary<string, int>();
 
         var matches = Regex.Matches(line, "(\\d+) ([a-z]+)");
-        foreach (Match m in matches) {
+        foreach (var m in matches.OfType<Match>()) {
             int amount = int.Parse(m.Groups[1].Value);
             string color = m.Groups[2].Value;
 

@@ -1,13 +1,9 @@
 ﻿namespace Utilities;
 
-public readonly struct FileInput {
+public readonly struct FileInput(string file) {
     const string INPUT_FOLDER = "input";
 
-    readonly string path;
-
-    public FileInput(string file) {
-        path = Path.Combine(INPUT_FOLDER, file);
-    }
+    readonly string path = Path.Combine(INPUT_FOLDER, file);
 
     public IEnumerable<string> ReadLines() {
         return File.ReadLines(path).Select(line => line.Trim());
