@@ -1,9 +1,9 @@
 ﻿using Day02;
 
-Console.WriteLine($"{nameof(Runtime.CalculatePossible)} example-1.txt: {new Runtime().CalculatePossible("example-1.txt")}");
+Console.WriteLine($"{nameof(Runtime.sumOfPossible)} example-1.txt: {new Runtime("example-1.txt").sumOfPossible}");
 
-Console.WriteLine($"{nameof(Runtime.CalculatePossible)} input.txt: {new Runtime().CalculatePossible("input.txt")}");
+Console.WriteLine($"{nameof(Runtime.sumOfPossible)} input.txt: {new Runtime("input.txt").sumOfPossible}");
 
-Console.WriteLine($"{nameof(Runtime.CalculatePower)} example-1.txt: {Runtime.CalculatePower("example-1.txt")}");
+Console.WriteLine($"{nameof(Runtime.sumOfProducts)} example-1.txt: {new Runtime("example-1.txt").sumOfProducts}");
 
-Console.WriteLine($"{nameof(Runtime.CalculatePower)} input.txt: {Runtime.CalculatePower("input.txt")}");
+Console.WriteLine($"{nameof(Runtime.sumOfProducts)} input.txt: {new Runtime("input.txt").sumOfProducts}");

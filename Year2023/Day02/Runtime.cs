@@ -3,46 +3,44 @@ using Utilities;
 
 namespace Day02;
 
-sealed class Runtime {
-    internal class Game {
+sealed class Runtime(string file) {
+    readonly Dictionary<string, int> cubes = new() {
+        ["red"] = 12,
+        ["green"] = 13,
+        ["blue"] = 14,
+    };
 
-    }
+    internal int sumOfPossible {
+        get {
+            int sum = 0;
+            foreach (var game in games) {
+                bool isValid = cubes
+                    .All(cube => game.cubes.TryGetValue(cube.Key, out int amount) && cube.Value >= amount);
 
-    readonly Dictionary<string, int> cubes = [];
-    internal Runtime() {
-        AddCubes("red", 12);
-        AddCubes("green", 13);
-        AddCubes("blue", 14);
-    }
-
-    void AddCubes(string color, int amount) {
-        cubes[color] = amount;
-    }
-
-    internal int CalculatePossible(string file) {
-        int sum = 0;
-        foreach (string line in new FileInput(file).ReadLines()) {
-            var game = ParseLine(line);
-            bool isValid = cubes
-                .All(cube => game.cubes.TryGetValue(cube.Key, out int amount) && cube.Value >= amount);
-
-            if (isValid) {
-                sum += game.id;
+                if (isValid) {
+                    sum += game.id;
+                }
             }
-        }
 
-        return sum;
+            return sum;
+        }
     }
 
-    internal static int CalculatePower(string file) {
-        int sum = 0;
-        foreach (string line in new FileInput(file).ReadLines()) {
-            var game = ParseLine(line);
-            sum += game.cubes.Values.Aggregate(1, (i, j) => i * j);
-        }
+    internal int sumOfProducts {
+        get {
 
-        return sum;
+            int sum = 0;
+            foreach (var game in games) {
+                sum += game.cubes.Values.Aggregate(1, (i, j) => i * j);
+            }
+
+            return sum;
+        }
     }
+
+    IEnumerable<(int id, IReadOnlyDictionary<string, int> cubes)> games => new FileInput(file)
+        .ReadLines()
+        .Select(ParseLine);
 
     internal static (int id, IReadOnlyDictionary<string, int> cubes) ParseLine(string line) {
         var match = Regex.Match(line, "Game (\\d+):");
