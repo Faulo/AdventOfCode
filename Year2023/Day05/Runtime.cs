@@ -4,7 +4,16 @@ using Utilities;
 namespace Day05;
 
 sealed class Runtime {
-    internal record Map(int destination, int source, int count);
+    internal record Map(long destination, long source, long count) {
+        internal bool TryTranslate(ref long input) {
+            if (source <= input && input < (source + count)) {
+                input = destination + (input - source);
+                return true;
+            }
+
+            return false;
+        }
+    }
 
     readonly IEnumerable<string> lines;
     internal readonly Dictionary<string, List<Map>> maps = [];
@@ -28,22 +37,22 @@ sealed class Runtime {
 
                 if (match.Success) {
                     maps[key].Add(new(
-                        int.Parse(match.Groups[1].Value),
-                        int.Parse(match.Groups[2].Value),
-                        int.Parse(match.Groups[3].Value)
+                        long.Parse(match.Groups[1].Value),
+                        long.Parse(match.Groups[2].Value),
+                        long.Parse(match.Groups[3].Value)
                    ));
                 }
             }
         }
     }
 
-    public IEnumerable<int> seeds {
+    public IEnumerable<long> seeds {
         get {
             foreach (string line in lines) {
                 var match = Regex.Match(line, "seeds: ([\\s\\d]+)");
                 if (match.Success) {
                     foreach (string seed in match.Groups[1].Value.Split(' ')) {
-                        if (int.TryParse(seed, out int result)) {
+                        if (long.TryParse(seed, out long result)) {
                             yield return result;
                         }
                     }
@@ -52,7 +61,19 @@ sealed class Runtime {
         }
     }
 
-    internal int lowestLocation { get; }
+    internal long lowestLocation => seeds
+        .Select(Translate)
+        .Min();
 
-    internal bool GetSeedLocation(int seed) => throw new NotImplementedException();
+    internal long Translate(long seed) {
+        foreach (var maps in maps.Values) {
+            foreach (var map in maps) {
+                if (map.TryTranslate(ref seed)) {
+                    break;
+                }
+            }
+        }
+
+        return seed;
+    }
 }
