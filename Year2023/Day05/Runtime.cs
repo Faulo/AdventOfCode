@@ -1,17 +1,41 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
+using Pair = (long start, long count);
+using TranslatedPair = ((long start, long count) pair, bool isTranslated);
 
 namespace Day05;
 
 sealed class Runtime {
     internal record Map(long destination, long source, long count) {
-        internal bool TryTranslate(ref long input) {
-            if (source <= input && input < (source + count)) {
-                input = destination + (input - source);
-                return true;
+        internal bool CanTranslate(long input)
+            => source <= input && input < (source + count);
+        internal long Translate(long input)
+            => destination + (input - source);
+        internal IEnumerable<TranslatedPair> TranslatePair(Pair value) {
+            long count = source - value.start;
+            if (count > 0) {
+                count = Math.Min(count, value.count);
+
+                yield return ((value.start, count), false);
+
+                value.start += count;
+                value.count -= count;
             }
 
-            return false;
+            if (CanTranslate(value.start)) {
+                count = Math.Min(value.count, source - value.start + this.count);
+                if (count > 0) {
+                    yield return ((Translate(value.start), count), true);
+
+                    value.start += count;
+                    value.count -= count;
+                }
+            }
+
+            count = value.count;
+            if (count > 0) {
+                yield return ((value.start, count), false);
+            }
         }
     }
 
@@ -46,7 +70,7 @@ sealed class Runtime {
         }
     }
 
-    public IEnumerable<long> seeds {
+    internal IEnumerable<long> seeds {
         get {
             foreach (string line in lines) {
                 var match = Regex.Match(line, "seeds: ([\\s\\d]+)");
@@ -61,7 +85,7 @@ sealed class Runtime {
         }
     }
 
-    public IEnumerable<long> seedsOfPairs {
+    internal IEnumerable<Pair> pairsOfSeeds {
         get {
             foreach (string line in lines) {
                 var match = Regex.Match(line, "seeds: ([\\s\\d]+)");
@@ -78,9 +102,7 @@ sealed class Runtime {
                                 first = true;
                                 count = result;
 
-                                for (long i = 0; i < count; i++) {
-                                    yield return start + i;
-                                }
+                                yield return (start, count);
                             }
                         }
                     }
@@ -93,19 +115,50 @@ sealed class Runtime {
         .Select(Translate)
         .Min();
 
-    internal long lowestLocationOfPairs => seedsOfPairs
-        .Select(Translate)
+    internal long lowestLocationOfPairs => pairsOfSeeds
+        .SelectMany(Translate)
+        .Select(p => p.start)
         .Min();
 
     internal long Translate(long seed) {
         foreach (var maps in maps.Values) {
             foreach (var map in maps) {
-                if (map.TryTranslate(ref seed)) {
+                if (map.CanTranslate(seed)) {
+                    seed = map.Translate(seed);
                     break;
                 }
             }
         }
 
         return seed;
+    }
+
+    internal IEnumerable<Pair> Translate(Pair seed) {
+        List<Pair> inputs = [seed];
+        List<Pair> translated = [];
+        List<Pair> notTranslated = [];
+
+        foreach (var maps in maps.Values) {
+            foreach (var map in maps) {
+                foreach (var input in inputs) {
+                    foreach (var (pair, isTranslated) in map.TranslatePair(input)) {
+                        if (isTranslated) {
+                            translated.Add(pair);
+                        } else {
+                            notTranslated.Add(pair);
+                        }
+                    }
+                }
+
+                inputs.Clear();
+                inputs.AddRange(notTranslated);
+                notTranslated.Clear();
+            }
+
+            inputs.AddRange(translated);
+            translated.Clear();
+        }
+
+        return inputs;
     }
 }
