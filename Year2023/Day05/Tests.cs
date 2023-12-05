@@ -5,10 +5,18 @@ namespace Day05;
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
     [TestCase("example-1.txt", 35)]
-    public void TestCalculateSumOfWins(string file, long expected) {
+    [TestCase("input.txt", 88151870)]
+    public void TestLowestLocation(string file, long expected) {
         var runtime = new Runtime(file);
 
         Assert.That(runtime.lowestLocation, Is.EqualTo(expected));
+    }
+
+    [TestCase("example-1.txt", 46)]
+    public void TestLowestLocationOfPairs(string file, long expected) {
+        var runtime = new Runtime(file);
+
+        Assert.That(runtime.lowestLocationOfPairs, Is.EqualTo(expected));
     }
 
     [TestCase("example-1.txt", 79)]

@@ -61,7 +61,39 @@ sealed class Runtime {
         }
     }
 
+    public IEnumerable<long> seedsOfPairs {
+        get {
+            foreach (string line in lines) {
+                var match = Regex.Match(line, "seeds: ([\\s\\d]+)");
+                if (match.Success) {
+                    bool first = true;
+                    long start = 0;
+                    long count = 0;
+                    foreach (string seed in match.Groups[1].Value.Split(' ')) {
+                        if (long.TryParse(seed, out long result)) {
+                            if (first) {
+                                first = false;
+                                start = result;
+                            } else {
+                                first = true;
+                                count = result;
+
+                                for (long i = 0; i < count; i++) {
+                                    yield return start + i;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     internal long lowestLocation => seeds
+        .Select(Translate)
+        .Min();
+
+    internal long lowestLocationOfPairs => seedsOfPairs
         .Select(Translate)
         .Min();
 
