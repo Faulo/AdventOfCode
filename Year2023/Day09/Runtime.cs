@@ -1,65 +1,67 @@
-﻿using System.Text.RegularExpressions;
-using Utilities;
+﻿using Utilities;
 
 namespace Day09;
 
 sealed class Runtime {
-    internal record Race(long time, long distance) {
-        internal long wins {
-            get {
-                return 1 + lastWin - firstWin;
-            }
+    internal record Reading {
+        readonly List<List<long>> allReadings = [];
+
+        internal Reading(string reading) {
+            var readings = reading
+                .Split(' ')
+                .Select(long.Parse)
+                .ToList();
+            do {
+                allReadings.Add(readings);
+                readings = GetSubReadings(readings);
+            } while (readings.Any(v => v != 0));
         }
-        internal long firstWin {
+
+        List<long> GetSubReadings(List<long> readings) {
+            var subReadings = new List<long>();
+            for (int i = 1; i < readings.Count; i++) {
+                subReadings.Add(readings[i] - readings[i - 1]);
+            }
+
+            return subReadings;
+        }
+
+        internal long extrapolation {
             get {
-                for (long i = 1; i < time; i++) {
-                    if (i * (time - i) > distance) {
-                        return i;
-                    }
+                long value = 0;
+                for (int i = 0; i < allReadings.Count; i++) {
+                    value += allReadings[i][^1];
                 }
 
-                return -1;
+                return value;
             }
         }
-        internal long lastWin {
+
+        internal long backwardsExtrapolation {
             get {
-                for (long i = time - 1; i > 0; i--) {
-                    if (i * (time - i) > distance) {
-                        return i;
-                    }
+                long value = 0;
+                for (int i = allReadings.Count - 1; i >= 0; i--) {
+                    value = allReadings[i][0] - value;
                 }
 
-                return -1;
+                return value;
             }
         }
     }
 
-    internal readonly List<Race> races = [];
     readonly string file;
 
-    public long productOfWins => races
-        .Aggregate((long)1, (p, r) => r.wins * p);
+    IEnumerable<Reading> readings => new FileInput(file)
+        .ReadLines()
+        .Select(value => new Reading(value));
 
-    internal Runtime(string file, bool badKerning = false) {
+    internal long sumOfExtrapolations => readings
+        .Sum(r => r.extrapolation);
+
+    internal long sumOfBackwardsExtrapolations => readings
+        .Sum(r => r.backwardsExtrapolation);
+
+    internal Runtime(string file) {
         this.file = file;
-
-        var lines = new FileInput(file).ReadLines();
-        string first = lines.First();
-        string last = lines.Last();
-
-        if (badKerning) {
-            first = first.Replace(" ", "");
-            last = last.Replace(" ", "");
-        }
-
-        var times = Regex.Matches(first, "(\\d+)");
-        var distances = Regex.Matches(last, "(\\d+)");
-
-        for (int i = 0; i < times.Count; i++) {
-            races.Add(new(
-                long.Parse(times[i].Groups[1].Value),
-                long.Parse(distances[i].Groups[1].Value)
-           ));
-        }
     }
 }
