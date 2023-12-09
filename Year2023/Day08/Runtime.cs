@@ -22,11 +22,11 @@ public sealed class Runtime {
         internal readonly bool isGoal = name[^1] == 'Z';
     }
 
-    internal int numberOfSteps {
+    internal long numberOfSteps {
         get {
             var node = nodes["AAA"];
             var goal = nodes["ZZZ"];
-            int steps = 0;
+            long steps = 0;
 
             foreach (var direction in infiniteInstructions) {
                 if (node == goal) {
@@ -40,21 +40,28 @@ public sealed class Runtime {
             return steps;
         }
     }
-    internal int numberOfGhostSteps {
+    internal long numberOfGhostSteps {
         get {
-            var nodes = this.nodes.Values.Where(n => n.isStart).ToList();
-            int steps = 0;
+            var nodes = this.nodes
+                .Values
+                .Where(n => n.isStart)
+                .ToArray();
+            long steps = 0;
 
             foreach (var direction in infiniteInstructions) {
-                if (nodes.All(n => n.isGoal)) {
-                    break;
-                }
-
-                for (int i = 0; i < nodes.Count; i++) {
+                bool isGoal = true;
+                for (int i = 0; i < nodes.Length; i++) {
                     nodes[i] = nodes[i][direction];
+                    if (!nodes[i].isGoal) {
+                        isGoal = false;
+                    }
                 }
 
                 steps++;
+
+                if (isGoal) {
+                    break;
+                }
             }
 
             return steps;
@@ -63,10 +70,12 @@ public sealed class Runtime {
 
     internal IEnumerable<Direction> infiniteInstructions {
         get {
-            while (true) {
-                foreach (var direction in instructions) {
-                    yield return direction;
+            for (int i = 0; ; i++) {
+                if (i == instructions.Count) {
+                    i = 0;
                 }
+
+                yield return instructions[i];
             }
         }
     }
@@ -85,7 +94,7 @@ public sealed class Runtime {
 
     internal Runtime(string file) {
         var lines = new FileInput(file).ReadLines();
-        instructions = ParseDirections(lines.First()).ToList();
+        instructions = ParseDirections(lines.First()).ToArray();
 
         foreach (string? line in lines.Skip(1)) {
             var match = Regex.Match(line, "(\\w+) = \\((\\w+), (\\w+)\\)");

@@ -6,14 +6,14 @@ namespace Day08;
 public class Tests {
     [TestCase("example-1.txt", 2)]
     [TestCase("example-2.txt", 6)]
-    public void Test_Runtime_NumberOfSteps(string file, int expected) {
+    public void Test_Runtime_NumberOfSteps(string file, long expected) {
         var runtime = new Runtime(file);
 
         Assert.That(runtime.numberOfSteps, Is.EqualTo(expected));
     }
 
     [TestCase("example-3.txt", 6)]
-    public void Test_Runtime_NumberOfGhostSteps(string file, int expected) {
+    public void Test_Runtime_NumberOfGhostSteps(string file, long expected) {
         var runtime = new Runtime(file);
 
         Assert.That(runtime.numberOfGhostSteps, Is.EqualTo(expected));
