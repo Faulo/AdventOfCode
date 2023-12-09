@@ -3,63 +3,78 @@ using Utilities;
 
 namespace Day08;
 
-sealed class Runtime {
-    internal record Race(long time, long distance) {
-        internal long wins {
+public sealed class Runtime {
+    public enum Direction {
+        Left,
+        Right,
+    }
+    internal record Node(string name) {
+        internal Node? left;
+        internal Node? right;
+        internal Node this[Direction direction] {
             get {
-                return 1 + lastWin - firstWin;
-            }
-        }
-        internal long firstWin {
-            get {
-                for (long i = 1; i < time; i++) {
-                    if (i * (time - i) > distance) {
-                        return i;
-                    }
-                }
-
-                return -1;
-            }
-        }
-        internal long lastWin {
-            get {
-                for (long i = time - 1; i > 0; i--) {
-                    if (i * (time - i) > distance) {
-                        return i;
-                    }
-                }
-
-                return -1;
+                return direction == Direction.Left
+                    ? left!
+                    : right!;
             }
         }
     }
 
-    internal readonly List<Race> races = [];
-    readonly string file;
+    internal int numberOfSteps {
+        get {
+            var node = nodes["AAA"];
+            var goal = nodes["ZZZ"];
+            int steps = 0;
+            foreach (var direction in infiniteInstructions) {
+                if (node == goal) {
+                    break;
+                }
 
-    public long productOfWins => races
-        .Aggregate((long)1, (p, r) => r.wins * p);
+                node = node[direction];
+                steps++;
+            }
 
-    internal Runtime(string file, bool badKerning = false) {
-        this.file = file;
-
-        var lines = new FileInput(file).ReadLines();
-        string first = lines.First();
-        string last = lines.Last();
-
-        if (badKerning) {
-            first = first.Replace(" ", "");
-            last = last.Replace(" ", "");
+            return steps;
         }
+    }
 
-        var times = Regex.Matches(first, "(\\d+)");
-        var distances = Regex.Matches(last, "(\\d+)");
+    internal IEnumerable<Direction> infiniteInstructions {
+        get {
+            while (true) {
+                foreach (var direction in instructions) {
+                    yield return direction;
+                }
+            }
+        }
+    }
+    internal readonly IReadOnlyList<Direction> instructions;
 
-        for (int i = 0; i < times.Count; i++) {
-            races.Add(new(
-                long.Parse(times[i].Groups[1].Value),
-                long.Parse(distances[i].Groups[1].Value)
-           ));
+    internal readonly Dictionary<string, Node> nodes = [];
+    Node GetOrAdd(string name) {
+        return nodes.TryGetValue(name, out var node)
+            ? node
+            : nodes[name] = new(name);
+    }
+
+    internal static IEnumerable<Direction> ParseDirections(string instructions) => instructions
+        .ToCharArray()
+        .Select(c => c == 'L' ? Direction.Left : Direction.Right);
+
+    internal Runtime(string file) {
+        var lines = new FileInput(file).ReadLines();
+        instructions = ParseDirections(lines.First()).ToList();
+
+        foreach (string? line in lines.Skip(1)) {
+            var match = Regex.Match(line, "(\\w+) = \\((\\w+), (\\w+)\\)");
+            if (match.Success) {
+                string name = match.Groups[1].Value;
+                string left = match.Groups[2].Value;
+                string right = match.Groups[3].Value;
+
+                var node = GetOrAdd(name);
+                node.left = GetOrAdd(left);
+                node.right = GetOrAdd(right);
+            }
         }
     }
 }

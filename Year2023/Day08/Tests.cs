@@ -4,44 +4,49 @@ namespace Day08;
 
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
-    [TestCase("example-1.txt", false, 288)]
-    [TestCase("example-2.txt", false, 71503)]
-    [TestCase("example-1.txt", true, 71503)]
-    public void Test_Runtime_ProductOfWins(string file, bool badKerning, int expected) {
-        var runtime = new Runtime(file, badKerning);
-
-        Assert.That(runtime.productOfWins, Is.EqualTo(expected));
-    }
-
-    [TestCase("example-1.txt", 7, 9)]
-    [TestCase("example-1.txt", 15, 40)]
-    [TestCase("example-1.txt", 30, 200)]
-    public void Test_Runtime_Races(string file, int time, int distance) {
+    [TestCase("example-1.txt", 2)]
+    [TestCase("example-2.txt", 6)]
+    public void Test_Runtime_NumberOfSteps(string file, int expected) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.races, Contains.Item(new Runtime.Race(time, distance)));
+        Assert.That(runtime.numberOfSteps, Is.EqualTo(expected));
     }
 
-    [TestCase(7, 9, 4)]
-    [TestCase(15, 40, 8)]
-    [TestCase(30, 200, 9)]
-    public void Test_Race_Wins(int time, int distance, int expected) {
-        var race = new Runtime.Race(time, distance);
+    [TestCase("example-1.txt", "RLRLRL")]
+    [TestCase("example-2.txt", "LLRLLRLLRLLR")]
+    public void Test_Runtime_InfiniteInstructions(string file, string expected) {
+        var runtime = new Runtime(file);
 
-        Assert.That(race.wins, Is.EqualTo(expected));
+        Assert.That(runtime.infiniteInstructions.Take(expected.Length), Is.EqualTo(Runtime.ParseDirections(expected)));
     }
 
-    [TestCase(15, 40, 4)]
-    public void Test_Race_FirstWin(int time, int distance, int expected) {
-        var race = new Runtime.Race(time, distance);
-
-        Assert.That(race.firstWin, Is.EqualTo(expected));
+    [TestCase("L", Runtime.Direction.Left)]
+    [TestCase("R", Runtime.Direction.Right)]
+    public void Test_Runtime_ParseDirections(string direction, Runtime.Direction expected) {
+        Assert.That(Runtime.ParseDirections(direction), Is.EqualTo(new[] { expected }));
     }
 
-    [TestCase(15, 40, 11)]
-    public void Test_Race_LastWin(int time, int distance, int expected) {
-        var race = new Runtime.Race(time, distance);
+    [TestCase("example-1.txt", "AAA")]
+    [TestCase("example-1.txt", "ZZZ")]
+    [TestCase("example-2.txt", "AAA")]
+    [TestCase("example-2.txt", "BBB")]
+    [TestCase("example-2.txt", "ZZZ")]
+    public void Test_Runtime_Nodes(string file, string expected) {
+        var runtime = new Runtime(file);
 
-        Assert.That(race.lastWin, Is.EqualTo(expected));
+        Assert.That(runtime.nodes, Contains.Key(expected));
+    }
+
+    [TestCase]
+    public void Test_Node_Direction() {
+        var node = new Runtime.Node("A");
+        var left = new Runtime.Node("B");
+        var right = new Runtime.Node("C");
+
+        node.left = left;
+        node.right = right;
+
+        Assert.That(node[Runtime.Direction.Left], Is.EqualTo(left));
+        Assert.That(node[Runtime.Direction.Right], Is.EqualTo(right));
     }
 }
