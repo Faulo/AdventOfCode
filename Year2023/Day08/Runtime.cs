@@ -18,6 +18,8 @@ public sealed class Runtime {
                     : right!;
             }
         }
+        internal readonly bool isStart = name[^1] == 'A';
+        internal readonly bool isGoal = name[^1] == 'Z';
     }
 
     internal int numberOfSteps {
@@ -25,12 +27,33 @@ public sealed class Runtime {
             var node = nodes["AAA"];
             var goal = nodes["ZZZ"];
             int steps = 0;
+
             foreach (var direction in infiniteInstructions) {
                 if (node == goal) {
                     break;
                 }
 
                 node = node[direction];
+                steps++;
+            }
+
+            return steps;
+        }
+    }
+    internal int numberOfGhostSteps {
+        get {
+            var nodes = this.nodes.Values.Where(n => n.isStart).ToList();
+            int steps = 0;
+
+            foreach (var direction in infiniteInstructions) {
+                if (nodes.All(n => n.isGoal)) {
+                    break;
+                }
+
+                for (int i = 0; i < nodes.Count; i++) {
+                    nodes[i] = nodes[i][direction];
+                }
+
                 steps++;
             }
 

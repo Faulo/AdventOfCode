@@ -12,6 +12,13 @@ public class Tests {
         Assert.That(runtime.numberOfSteps, Is.EqualTo(expected));
     }
 
+    [TestCase("example-3.txt", 6)]
+    public void Test_Runtime_NumberOfGhostSteps(string file, int expected) {
+        var runtime = new Runtime(file);
+
+        Assert.That(runtime.numberOfGhostSteps, Is.EqualTo(expected));
+    }
+
     [TestCase("example-1.txt", "RLRLRL")]
     [TestCase("example-2.txt", "LLRLLRLLRLLR")]
     public void Test_Runtime_InfiniteInstructions(string file, string expected) {
