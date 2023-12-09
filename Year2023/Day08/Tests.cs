@@ -19,6 +19,13 @@ public class Tests {
         Assert.That(runtime.numberOfGhostSteps, Is.EqualTo(expected));
     }
 
+    [TestCase("input.txt", 1880032569870193489)]
+    public void Test_Runtime_NumberOfGhostSteps_LessThan(string file, long expected) {
+        var runtime = new Runtime(file);
+
+        Assert.That(runtime.numberOfGhostSteps, Is.LessThan(expected));
+    }
+
     [TestCase("example-1.txt", "RLRLRL")]
     [TestCase("example-2.txt", "LLRLLRLLRLLR")]
     public void Test_Runtime_InfiniteInstructions(string file, string expected) {
@@ -31,6 +38,11 @@ public class Tests {
     [TestCase("R", Runtime.Direction.Right)]
     public void Test_Runtime_ParseDirections(string direction, Runtime.Direction expected) {
         Assert.That(Runtime.ParseDirections(direction), Is.EqualTo(new[] { expected }));
+    }
+
+    [Test]
+    public void Test_Runtime_LeastCommonMultiple() {
+        Assert.That(Runtime.LeastCommonMultiple(2, 3, 6), Is.EqualTo(6));
     }
 
     [TestCase("example-1.txt", "AAA")]

@@ -45,26 +45,28 @@ public sealed class Runtime {
             var nodes = this.nodes
                 .Values
                 .Where(n => n.isStart)
-                .ToArray();
-            long steps = 0;
+                .ToList();
+            var steps = new List<long>();
 
+            long s = 0;
             foreach (var direction in infiniteInstructions) {
-                bool isGoal = true;
-                for (int i = 0; i < nodes.Length; i++) {
+                s++;
+
+                for (int i = 0; i < nodes.Count; i++) {
                     nodes[i] = nodes[i][direction];
-                    if (!nodes[i].isGoal) {
-                        isGoal = false;
+                    if (nodes[i].isGoal) {
+                        steps.Add(s);
+                        nodes.RemoveAt(i);
+                        i--;
                     }
                 }
 
-                steps++;
-
-                if (isGoal) {
+                if (nodes.Count == 0) {
                     break;
                 }
             }
 
-            return steps;
+            return LeastCommonMultiple(steps);
         }
     }
 
@@ -108,5 +110,21 @@ public sealed class Runtime {
                 node.right = GetOrAdd(right);
             }
         }
+    }
+
+    static long GreatestCommonFactor(long a, long b) {
+        while (b != 0) {
+            long temp = b;
+            b = a % b;
+            a = temp;
+        }
+
+        return a;
+    }
+
+    internal static long LeastCommonMultiple(params long[] numbers)
+        => LeastCommonMultiple((IEnumerable<long>)numbers);
+    internal static long LeastCommonMultiple(IEnumerable<long> numbers) {
+        return numbers.Aggregate((a, b) => a * b / GreatestCommonFactor(a, b));
     }
 }
