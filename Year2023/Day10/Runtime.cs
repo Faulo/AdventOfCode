@@ -1,4 +1,5 @@
-﻿using Utilities;
+﻿using NUnit.Framework;
+using Utilities;
 
 namespace Day10;
 
@@ -20,20 +21,32 @@ sealed class Runtime {
         get {
             int i = 0;
             for (int x = 0; x < width; x++) {
-                int borderCount = 0;
+                var borderCount = new Dictionary<Directions, int> {
+                    [Directions.West] = 0,
+                    [Directions.East] = 0,
+                };
                 for (int y = 0; y < height; y++) {
                     var position = new Vector2(x, y);
                     bool isOnPath = IsOnPath(position);
-                    bool isBorder = isOnPath && (this[position].GetDirections() & (Directions.West | Directions.East)) != 0;
+                    var directions = this[position].GetDirections();
+                    bool isBorder = isOnPath && (directions & (Directions.West | Directions.East)) != 0;
 
                     if (isBorder) {
-                        borderCount++;
+                        if (directions.HasFlag(Directions.West)) {
+                            borderCount[Directions.West]++;
+                        }
+
+                        if (directions.HasFlag(Directions.East)) {
+                            borderCount[Directions.East]++;
+                        }
                     }
 
-                    if (isOnPath || borderCount % 2 == 1) {
+                    if (isOnPath || borderCount.Values.Any(c => c % 2 == 1)) {
                         i++;
                     }
                 }
+
+                Assert.That(borderCount.Values.All(c => c % 2 == 0), Is.True, $"Failed to determine borders for x={x}");
             }
 
             return i - path.Count;
@@ -117,6 +130,7 @@ sealed class Runtime {
     }
 }
 
+[Flags]
 enum Directions {
     None = 0,
     North = 1 << 0,

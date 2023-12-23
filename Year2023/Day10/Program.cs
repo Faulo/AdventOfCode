@@ -5,3 +5,5 @@ Console.WriteLine($"{nameof(Runtime.maximumDistance)} example-1.txt: {new Runtim
 Console.WriteLine($"{nameof(Runtime.maximumDistance)} example-2.txt: {new Runtime("example-2.txt").maximumDistance}");
 
 Console.WriteLine($"{nameof(Runtime.maximumDistance)} input.txt: {new Runtime("input.txt").maximumDistance}");
+
+Console.WriteLine($"{nameof(Runtime.enclosedArea)} input.txt: {new Runtime("input.txt").enclosedArea}");
