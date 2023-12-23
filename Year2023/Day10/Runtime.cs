@@ -3,60 +3,84 @@
 namespace Day10;
 
 sealed class Runtime {
-    char this[Vector2 position] {
+    internal char this[Vector2 position] {
         get {
             return map[position.x, position.y];
         }
     }
 
     readonly char[,] map;
-    int width => map.GetLength(0);
-    int height => map.GetLength(1);
+    readonly int width;
+    readonly int height;
+    internal readonly Vector2 start;
 
-    internal int maximumDistance {
+    readonly HashSet<Vector2> path;
+    internal int maximumDistance => path.Count / 2;
+    internal int enclosedArea {
         get {
-            var paths = GetNeighborsPointingTo(start)
-                .ToList();
-            var first = paths[0];
-            var second = paths[1];
-
-            int i = 1;
-
-            var previousFirst = start;
-            var previousSecond = start;
-            while (first != second) {
-                i++;
-
-                var newFirst = GetNeighborsPointingFrom(first).First(p => p != previousFirst);
-                var newSecond = GetNeighborsPointingFrom(second).First(p => p != previousSecond);
-
-                previousFirst = first;
-                previousSecond = second;
-
-                first = newFirst;
-                second = newSecond;
-            }
-
-            return i;
-        }
-    }
-
-    internal Vector2 start {
-        get {
+            int i = 0;
             for (int x = 0; x < width; x++) {
+                int borderCount = 0;
                 for (int y = 0; y < height; y++) {
-                    if (map[x, y] == 'S') {
-                        return new(x, y);
+                    var position = new Vector2(x, y);
+                    bool isOnPath = IsOnPath(position);
+                    bool isBorder = isOnPath && (this[position].GetDirections() & (Directions.West | Directions.East)) != 0;
+
+                    if (isBorder) {
+                        borderCount++;
+                    }
+
+                    if (isOnPath || borderCount % 2 == 1) {
+                        i++;
                     }
                 }
             }
 
-            throw new Exception();
+            return i - path.Count;
         }
     }
 
     internal Runtime(string file) {
         map = new FileInput(file).ReadAllCharactersAsMap();
+        width = map.GetLength(0);
+        height = map.GetLength(1);
+        start = GetStart();
+
+        map[start.x, start.y] = GetCharacterPointingTo(start);
+
+        var previousPoint = start;
+        var point = GetNeighborsPointingTo(previousPoint).First();
+        path = [previousPoint];
+        while (path.Add(point)) {
+            var newPoint = GetNeighborsPointingFrom(point).First(p => p != previousPoint);
+            previousPoint = point;
+            point = newPoint;
+        }
+    }
+
+    Vector2 GetStart() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (map[x, y] == 'S') {
+                    return new(x, y);
+                }
+            }
+        }
+
+        throw new Exception();
+    }
+
+    internal char GetCharacterPointingTo(Vector2 position) {
+        var direction = Directions.None;
+        foreach (var neighbor in GetNeighbors(position)) {
+            foreach (var offset in this[neighbor].GetDirections().GetOffsets()) {
+                if (offset == position - neighbor) {
+                    direction |= new Vector2(-offset.x, -offset.y).GetDirections();
+                }
+            }
+        }
+
+        return direction.GetCharacter();
     }
 
     internal IEnumerable<Vector2> GetNeighborsPointingTo(Vector2 position) {
@@ -88,6 +112,9 @@ sealed class Runtime {
         return position.x >= 0 && position.x < width
             && position.y >= 0 && position.y < height;
     }
+    internal bool IsOnPath(Vector2 position) {
+        return path.Contains(position);
+    }
 }
 
 enum Directions {
@@ -116,6 +143,18 @@ static class Extensions {
         };
     }
 
+    internal static char GetCharacter(this Directions direction) {
+        return direction switch {
+            Directions.North | Directions.South => '|', // is a vertical pipe connecting north and south.
+            Directions.East | Directions.West => '-', // is a horizontal pipe connecting east and west.
+            Directions.North | Directions.East => 'L', // is a 90 - degree bend connecting north and east.
+            Directions.North | Directions.West => 'J', // is a 90 - degree bend connecting north and west.
+            Directions.South | Directions.West => '7', // is a 90 - degree bend connecting south and west.
+            Directions.South | Directions.East => 'F', // is a 90-degree bend connecting south and east.
+            _ => '.',
+        };
+    }
+
     internal static IEnumerable<Vector2> GetOffsets(this Directions directions) {
         if (directions.HasFlag(Directions.North)) {
             yield return new(0, -1);
@@ -132,5 +171,15 @@ static class Extensions {
         if (directions.HasFlag(Directions.West)) {
             yield return new(-1, 0);
         }
+    }
+
+    internal static Directions GetDirections(this Vector2 offset) {
+        return (offset.x, offset.y) switch {
+            (0, -1) => Directions.North,
+            (1, 0) => Directions.East,
+            (0, 1) => Directions.South,
+            (-1, 0) => Directions.West,
+            _ => Directions.None,
+        };
     }
 }
