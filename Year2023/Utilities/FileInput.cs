@@ -16,7 +16,9 @@ public readonly struct FileInput(string file) {
     public char[] ReadAllCharacters() {
         return ReadAllText().Trim().ToCharArray();
     }
-
+    public CharacterMap ReadAllAsCharacterMap() {
+        return new(ReadAllCharactersAsMap());
+    }
     public char[,] ReadAllCharactersAsMap() {
         int width = 0;
         int height = 0;
