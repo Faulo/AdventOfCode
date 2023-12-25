@@ -35,14 +35,13 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
 
     internal long numberOfArrangements {
         get {
-            int totalCount = damagedCounts.Sum() + damagedCounts.Count - 1;
-            return CountDamageCounts(0, 0, totalCount);
+            return CountDamageCounts(0, 0);
         }
     }
 
     readonly Dictionary<(int damagedIndex, int index), long> damageCountCache = [];
 
-    long CountDamageCounts(int damagedIndex, int start, int totalCount) {
+    long CountDamageCounts(int damagedIndex, int start) {
         var key = (damagedIndex, start);
 
         if (damageCountCache.TryGetValue(key, out long count)) {
@@ -59,53 +58,38 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
             return damageCountCache[key] = 1;
         }
 
-        if (start + totalCount > springs.Count) {
-            return damageCountCache[key] = 0;
-        }
-
         count = 0;
 
         foreach (int index in FindDamagedCount(damagedCounts[damagedIndex], start)) {
-            count += CountDamageCounts(damagedIndex + 1, index, totalCount - damagedCounts[damagedIndex] - 1);
+            count += CountDamageCounts(damagedIndex + 1, index);
         }
 
         return damageCountCache[key] = count;
     }
 
-    readonly Dictionary<(int damagedCount, int index), List<int>> damageIndexCache = [];
-
     internal IEnumerable<int> FindDamagedCount(int damagedCount, int start) {
         for (; start < springs.Count && springs[start].IsOperational(); start++) {
         }
 
-        var key = (damagedCount, start);
-
-        if (!damageIndexCache.TryGetValue(key, out var list)) {
-            list = [];
-            damageIndexCache[key] = list;
-
-            while (start < springs.Count) {
-                bool found = true;
-                for (int i = 0; i < damagedCount; i++) {
-                    if (!this[start + i].CouldBeDamaged()) {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found && this[start + damagedCount].CouldBeOperational()) {
-                    list.Add(start + damagedCount + 1);
-                }
-
-                if (this[start].IsDamaged()) {
+        while (start < springs.Count) {
+            bool found = true;
+            for (int i = 0; i < damagedCount; i++) {
+                if (!this[start + i].CouldBeDamaged()) {
+                    found = false;
                     break;
                 }
-
-                start++;
             }
-        }
 
-        return list;
+            if (found && this[start + damagedCount].CouldBeOperational()) {
+                yield return start + damagedCount + 1;
+            }
+
+            if (this[start].IsDamaged()) {
+                break;
+            }
+
+            start++;
+        }
     }
 
     int CalculateArrangements(char[] overrides, int start) {

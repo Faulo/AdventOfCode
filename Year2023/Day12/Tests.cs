@@ -7,7 +7,8 @@ public class Tests {
     [TestCase("example-1.txt", 1, 21)]
     [TestCase("example-1.txt", 5, 525152)]
     [TestCase("input.txt", 1, 7090)]
-    public void Test_Runtime_SumOfArrangements(string file, int foldCount, int expected) {
+    [TestCase("input.txt", 5, 6792010726878)]
+    public void Test_Runtime_SumOfArrangements(string file, int foldCount, long expected) {
         var runtime = new Runtime(file, foldCount);
 
         Assert.That(runtime.sumOfArrangements, Is.EqualTo(expected));
