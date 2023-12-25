@@ -6,6 +6,7 @@ namespace Day12;
 public class Tests {
     [TestCase("example-1.txt", 1, 21)]
     [TestCase("example-1.txt", 5, 525152)]
+    [TestCase("input.txt", 1, 7090)]
     public void Test_Runtime_SumOfArrangements(string file, int foldCount, int expected) {
         var runtime = new Runtime(file, foldCount);
 
