@@ -3,7 +3,8 @@
 namespace Day12;
 
 sealed class Runtime {
-    internal long sumOfArrangements => 0;
+    internal long sumOfArrangements => records
+        .Sum(r => r.numberOfArrangements);
 
     internal readonly List<Record> records = [];
 
@@ -14,7 +15,34 @@ sealed class Runtime {
     }
 }
 
-sealed record Record(char[] springs, int[] damagedCounts) {
+sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCounts) {
+    internal int numberOfArrangements {
+        get {
+            char[] overrides = new char[springs.Count];
+
+            return CalculateArrangements(overrides, 0);
+        }
+    }
+
+    int CalculateArrangements(char[] overrides, int start) {
+        int count = 0;
+        for (int i = start; i < springs.Count; i++) {
+            if (springs[i].IsUnknown()) {
+                overrides[i] = '.';
+                count += CalculateArrangements(overrides, i + 1);
+                overrides[i] = '#';
+                count += CalculateArrangements(overrides, i + 1);
+                return count;
+            }
+        }
+
+        if (springs.MatchesCount(damagedCounts, overrides)) {
+            count++;
+        }
+
+        return count;
+    }
+
     internal static Record Parse(string row) {
         string[] cells = row.Split(' ');
         return new(
@@ -41,5 +69,41 @@ static class Extensions {
     }
     internal static bool IsUnknown(this char character) {
         return character == '?';
+    }
+    internal static bool IsOverride(this char character) {
+        return character != default;
+    }
+    internal static bool MatchesCount(this IReadOnlyList<char> springs, IReadOnlyList<int> damagedCounts, IReadOnlyList<char> overrides) {
+        int damagedCount = 0;
+        int damagedIndex = 0;
+        for (int i = 0; i < springs.Count; i++) {
+            char spring = springs[i].IsUnknown()
+                ? overrides[i]
+                : springs[i];
+
+            if (spring.IsDamaged()) {
+                damagedCount++;
+            } else {
+                if (damagedCount > 0) {
+                    if (damagedIndex == damagedCounts.Count || damagedCounts[damagedIndex] != damagedCount) {
+                        return false;
+                    }
+
+                    damagedIndex++;
+                    damagedCount = 0;
+                }
+            }
+        }
+
+        if (damagedCount > 0) {
+            if (damagedIndex == damagedCounts.Count || damagedCounts[damagedIndex] != damagedCount) {
+                return false;
+            }
+
+            damagedIndex++;
+            damagedCount = 0;
+        }
+
+        return damagedCounts.Count == damagedIndex;
     }
 }
