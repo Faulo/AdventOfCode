@@ -16,11 +16,57 @@ sealed class Runtime {
 }
 
 sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCounts) {
+    char this[int i] => i < springs.Count
+        ? springs[i]
+        : '.';
+
     internal int numberOfArrangements {
         get {
-            char[] overrides = new char[springs.Count];
+            return CountDamageCounts(0, 0);
+        }
+    }
 
-            return CalculateArrangements(overrides, 0);
+    int CountDamageCounts(int damagedIndex, int start) {
+        if (damagedIndex == damagedCounts.Count) {
+            for (int i = start; i < springs.Count; i++) {
+                if (springs[i].IsDamaged()) {
+                    return 0;
+                }
+            }
+
+            return 1;
+        }
+
+        int count = 0;
+        foreach (int index in FindDamagedCount(damagedCounts[damagedIndex], start)) {
+            count += CountDamageCounts(damagedIndex + 1, index);
+        }
+
+        return count;
+    }
+
+    internal IEnumerable<int> FindDamagedCount(int damagedCount, int start) {
+        for (; start < springs.Count && springs[start].IsOperational(); start++) {
+        }
+
+        while (start < springs.Count) {
+            bool found = true;
+            for (int i = 0; i < damagedCount; i++) {
+                if (!this[start + i].CouldBeDamaged()) {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found && this[start + damagedCount].CouldBeOperational()) {
+                yield return start + damagedCount + 1;
+            }
+
+            if (this[start].IsDamaged()) {
+                break;
+            }
+
+            start++;
         }
     }
 
@@ -46,8 +92,8 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
     internal static Record Parse(string row, int foldCount = 1) {
         string[] cells = row.Split(' ');
         return new(
-            Enumerable.Repeat(cells[0].ToCharArray(), foldCount).SelectMany(i => i).ToArray(),
-            Enumerable.Repeat(cells[1].Split(',').Select(int.Parse), foldCount).SelectMany(i => i).ToArray()
+            string.Join('?', Enumerable.Repeat(cells[0], foldCount)).ToCharArray(),
+            string.Join(',', Enumerable.Repeat(cells[1], foldCount)).Split(',').Select(int.Parse).ToArray()
         );
     }
 
@@ -62,16 +108,19 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
 
 static class Extensions {
     internal static bool IsOperational(this char character) {
-        return character == '.';
+        return character is '.';
+    }
+    internal static bool CouldBeOperational(this char character) {
+        return character is '.' or '?';
     }
     internal static bool IsDamaged(this char character) {
-        return character == '#';
+        return character is '#';
+    }
+    internal static bool CouldBeDamaged(this char character) {
+        return character is '#' or '?';
     }
     internal static bool IsUnknown(this char character) {
-        return character == '?';
-    }
-    internal static bool IsOverride(this char character) {
-        return character != default;
+        return character is '?';
     }
     internal static bool MatchesCount(this IReadOnlyList<char> springs, IReadOnlyList<int> damagedCounts, IReadOnlyList<char> overrides) {
         int damagedCount = 0;

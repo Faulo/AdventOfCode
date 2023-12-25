@@ -32,16 +32,52 @@ public class Tests {
         Assert.That(record.damagedCounts, Is.EqualTo(new[] { 1, 1, 3 }));
     }
 
-    [TestCase("???.### 1,1,3", 1)]
-    [TestCase(".??..??...?##. 1,1,3", 4)]
-    [TestCase("?#?#?#?#?#?#?#? 1,3,1,6", 1)]
-    [TestCase("????.#...#... 4,1,1", 1)]
-    [TestCase("????.######..#####. 1,6,5", 4)]
-    [TestCase("?###???????? 3,2,1", 10)]
-    public void Test_Record_NumberOfArrangements(string record, int expected) {
-        var sut = Record.Parse(record);
+    [Test]
+    public void Test_Record_FoldCount() {
+        var record = Record.Parse("???.### 1,1,3", 5);
+
+        Assert.That(record.springs, Is.EqualTo("???.###????.###????.###????.###????.###".ToCharArray()));
+        Assert.That(record.damagedCounts, Is.EqualTo(new[] { 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3 }));
+    }
+
+    [TestCase("???.### 1,1,3", 1, 1)]
+    [TestCase("???.### 1,1,3", 5, 1)]
+    [TestCase(".??..??...?##. 1,1,3", 1, 4)]
+    [TestCase(".??..??...?##. 1,1,3", 5, 16384)]
+    [TestCase("?#?#?#?#?#?#?#? 1,3,1,6", 1, 1)]
+    [TestCase("?#?#?#?#?#?#?#? 1,3,1,6", 5, 1)]
+    [TestCase("????.#...#... 4,1,1", 1, 1)]
+    [TestCase("????.#...#... 4,1,1", 5, 16)]
+    [TestCase("????.######..#####. 1,6,5", 1, 4)]
+    [TestCase("????.######..#####. 1,6,5", 5, 2500)]
+    [TestCase("?###???????? 3,2,1", 1, 10)]
+    [TestCase("?###???????? 3,2,1", 5, 506250)]
+    public void Test_Record_NumberOfArrangements(string record, int foldCount, int expected) {
+        var sut = Record.Parse(record, foldCount);
 
         Assert.That(sut.numberOfArrangements, Is.EqualTo(expected));
+    }
+
+    [TestCase("???.### 1,1,3", 1, 0, "2,3,4")]
+    [TestCase("???.### 1,1,3", 2, 0, "3,4")]
+    [TestCase("???.### 1,1,3", 3, 0, "4,8")]
+    [TestCase("???.### 1,1,3", 3, 4, "8")]
+    [TestCase("???.### 1,1,3", 4, 0, "")]
+    [TestCase("????.######..#####. 1,6,5", 1, 0, "2,3,4,5")]
+    [TestCase("????.######..#####. 1,6,5", 6, 0, "12")]
+    [TestCase("????.######..#####. 1,6,5", 6, 1, "12")]
+    [TestCase("????.######..#####. 1,6,5", 6, 2, "12")]
+    [TestCase("????.######..#####. 1,6,5", 6, 3, "12")]
+    [TestCase("????.######..#####. 1,6,5", 6, 4, "12")]
+    [TestCase("????.######..#####. 1,6,5", 6, 5, "12")]
+    [TestCase("????.######..#####. 1,6,5", 5, 12, "19")]
+    public void Test_Record_FindDamagedCount(string record, int damageCount, int start, string expected) {
+        var sut = Record.Parse(record);
+
+        Assert.That(
+            sut.FindDamagedCount(damageCount, start),
+            Is.EqualTo(string.IsNullOrEmpty(expected) ? Enumerable.Empty<int>() : expected.Split(',').Select(int.Parse))
+        );
     }
 
     [TestCase("#.#.###", "1, 1, 3")]
