@@ -8,9 +8,9 @@ sealed class Runtime {
 
     internal readonly List<Record> records = [];
 
-    internal Runtime(string file) {
+    internal Runtime(string file, int foldCount = 1) {
         foreach (string row in new FileInput(file).ReadLines()) {
-            records.Add(Record.Parse(row));
+            records.Add(Record.Parse(row, foldCount));
         }
     }
 }
@@ -43,11 +43,11 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
         return count;
     }
 
-    internal static Record Parse(string row) {
+    internal static Record Parse(string row, int foldCount = 1) {
         string[] cells = row.Split(' ');
         return new(
-            cells[0].ToCharArray(),
-            cells[1].Split(',').Select(int.Parse).ToArray()
+            Enumerable.Repeat(cells[0].ToCharArray(), foldCount).SelectMany(i => i).ToArray(),
+            Enumerable.Repeat(cells[1].Split(',').Select(int.Parse), foldCount).SelectMany(i => i).ToArray()
         );
     }
 

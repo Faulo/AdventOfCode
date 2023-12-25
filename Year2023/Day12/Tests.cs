@@ -4,9 +4,10 @@ namespace Day12;
 
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
-    [TestCase("example-1.txt", 21)]
-    public void Test_Runtime_SumOfArrangements(string file, int expected) {
-        var runtime = new Runtime(file);
+    [TestCase("example-1.txt", 1, 21)]
+    [TestCase("example-1.txt", 5, 525152)]
+    public void Test_Runtime_SumOfArrangements(string file, int foldCount, int expected) {
+        var runtime = new Runtime(file, foldCount);
 
         Assert.That(runtime.sumOfArrangements, Is.EqualTo(expected));
     }
