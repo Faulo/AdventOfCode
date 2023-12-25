@@ -3,8 +3,15 @@
 namespace Day12;
 
 sealed class Runtime {
-    internal long sumOfArrangements => records
-        .Sum(r => r.numberOfArrangements);
+    internal long sumOfArrangements {
+        get {
+            long sum = 0;
+
+            Parallel.ForEach(records, record => Interlocked.Add(ref sum, record.numberOfArrangements));
+
+            return sum;
+        }
+    }
 
     internal readonly List<Record> records = [];
 
@@ -20,13 +27,13 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
         ? springs[i]
         : '.';
 
-    internal int numberOfArrangements {
+    internal long numberOfArrangements {
         get {
             return CountDamageCounts(0, 0);
         }
     }
 
-    int CountDamageCounts(int damagedIndex, int start) {
+    long CountDamageCounts(int damagedIndex, int start) {
         if (damagedIndex == damagedCounts.Count) {
             for (int i = start; i < springs.Count; i++) {
                 if (springs[i].IsDamaged()) {
@@ -37,7 +44,7 @@ sealed record Record(IReadOnlyList<char> springs, IReadOnlyList<int> damagedCoun
             return 1;
         }
 
-        int count = 0;
+        long count = 0;
         foreach (int index in FindDamagedCount(damagedCounts[damagedIndex], start)) {
             count += CountDamageCounts(damagedIndex + 1, index);
         }
