@@ -1,4 +1,6 @@
-﻿namespace Utilities {
+﻿using System.Text;
+
+namespace Utilities {
     public sealed record CharacterMap(char[,] map) {
         public char this[Vector2Int position] {
             get {
@@ -37,6 +39,27 @@
         public bool IsInBounds(Vector2Int position) {
             return position.x >= 0 && position.x < width
                 && position.y >= 0 && position.y < height;
+        }
+
+        public string Serialize() {
+            var builder = new StringBuilder();
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    builder.Append(this[x, y]);
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        public void Deserialize(string cache) {
+            int i = 0;
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    this[x, y] = cache[i];
+                    i++;
+                }
+            }
         }
     }
 }

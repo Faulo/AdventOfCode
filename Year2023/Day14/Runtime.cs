@@ -27,19 +27,100 @@ sealed class Runtime {
     }
 
     internal Runtime TiltNorth() {
-
         bool hasMoved;
         do {
             hasMoved = false;
             for (int y = 1; y < map.height; y++) {
+                int next = y - 1;
                 for (int x = 0; x < map.width; x++) {
-                    if (map[x, y - 1].IsFree() && map[x, y].IsRound()) {
-                        (map[x, y - 1], map[x, y]) = (map[x, y], map[x, y - 1]);
+                    if (map[x, next].IsFree() && map[x, y].IsRound()) {
+                        (map[x, next], map[x, y]) = (map[x, y], map[x, next]);
                         hasMoved = true;
                     }
                 }
             }
         } while (hasMoved);
+
+        return this;
+    }
+
+    internal Runtime TiltSouth() {
+
+        bool hasMoved;
+        do {
+            hasMoved = false;
+            for (int y = 0; y < map.height - 1; y++) {
+                int next = y + 1;
+                for (int x = 0; x < map.width; x++) {
+                    if (map[x, next].IsFree() && map[x, y].IsRound()) {
+                        (map[x, next], map[x, y]) = (map[x, y], map[x, next]);
+                        hasMoved = true;
+                    }
+                }
+            }
+        } while (hasMoved);
+
+        return this;
+    }
+
+    internal Runtime TiltWest() {
+        bool hasMoved;
+        do {
+            hasMoved = false;
+            for (int x = 1; x < map.width; x++) {
+                int next = x - 1;
+                for (int y = 0; y < map.height; y++) {
+                    if (map[next, y].IsFree() && map[x, y].IsRound()) {
+                        (map[next, y], map[x, y]) = (map[x, y], map[next, y]);
+                        hasMoved = true;
+                    }
+                }
+            }
+        } while (hasMoved);
+
+        return this;
+    }
+
+    internal Runtime TiltEast() {
+        bool hasMoved;
+        do {
+            hasMoved = false;
+            for (int x = 0; x < map.width - 1; x++) {
+                int next = x + 1;
+                for (int y = 0; y < map.height; y++) {
+                    if (map[next, y].IsFree() && map[x, y].IsRound()) {
+                        (map[next, y], map[x, y]) = (map[x, y], map[next, y]);
+                        hasMoved = true;
+                    }
+                }
+            }
+        } while (hasMoved);
+
+        return this;
+    }
+
+    internal Runtime CycleTilt(int cycles) {
+        Dictionary<string, string> cycleCache = [];
+
+        string key = map.Serialize();
+
+        for (int i = 0; i < cycles; i++) {
+            if (!cycleCache.TryGetValue(key, out string? newKey)) {
+                map.Deserialize(key);
+                TiltNorth();
+                TiltWest();
+                TiltSouth();
+                TiltEast();
+                newKey = map.Serialize();
+                cycleCache[key] = newKey;
+            }
+
+            key = newKey;
+        }
+
+        map.Deserialize(key);
+
+        Console.WriteLine(cycleCache.Count);
 
         return this;
     }
