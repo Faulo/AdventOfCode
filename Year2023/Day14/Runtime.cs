@@ -104,8 +104,27 @@ sealed class Runtime {
 
         string key = map.Serialize();
 
+        bool hasSpooled = false;
         for (int i = 0; i < cycles; i++) {
-            if (!cycleCache.TryGetValue(key, out string? newKey)) {
+            if (cycleCache.TryGetValue(key, out string? newKey)) {
+                if (!hasSpooled) {
+                    hasSpooled = true;
+
+                    int keyIndex = 0;
+                    foreach (string k in cycleCache.Keys) {
+                        if (k == key) {
+                            break;
+                        }
+
+                        keyIndex++;
+                    }
+
+                    int span = cycleCache.Count - keyIndex;
+                    while (i + span < cycles) {
+                        i += span;
+                    }
+                }
+            } else {
                 map.Deserialize(key);
                 TiltNorth();
                 TiltWest();
