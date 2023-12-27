@@ -120,8 +120,6 @@ sealed class Runtime {
 
         map.Deserialize(key);
 
-        Console.WriteLine(cycleCache.Count);
-
         return this;
     }
 }
