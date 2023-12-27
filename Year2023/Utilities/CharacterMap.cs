@@ -4,10 +4,24 @@
             get {
                 return map[position.x, position.y];
             }
+            set {
+                map[position.x, position.y] = value;
+            }
         }
         public char this[(int x, int y) position] {
             get {
                 return map[position.x, position.y];
+            }
+            set {
+                map[position.x, position.y] = value;
+            }
+        }
+        public char this[int x, int y] {
+            get {
+                return map[x, y];
+            }
+            set {
+                map[x, y] = value;
             }
         }
         public readonly int width = map.GetLength(0);
