@@ -1,19 +1,44 @@
-﻿using Utilities;
+﻿using System.Collections.Concurrent;
+using Utilities;
 
 namespace Day16;
 
 sealed class Runtime(string file) {
     CharacterMap map = new FileInput(file).ReadAllAsCharacterMap();
 
-    internal int numberOfEnergizedTiles {
+    internal int numberOfEnergizedTiles => CountEnergizedTiels(new(0, 0), Directions.Right);
+
+    int CountEnergizedTiels(Vector2Int position, Directions direction) {
+        var energized = new Directions[map.width, map.height];
+
+        Move(energized, position, direction);
+
+        return energized
+            .AsEnumerable()
+            .Count(d => d != Directions.None);
+    }
+
+    internal int maximumNumberOfEnergizedTiles {
         get {
-            var energized = new Directions[map.width, map.height];
+            var counts = new ConcurrentStack<int>();
 
-            Move(energized, new(0, 0), Directions.Right);
+            Parallel.ForEach(startingPositions, start => counts.Push(CountEnergizedTiels(start.position, start.direction)));
 
-            return energized
-                .AsEnumerable()
-                .Count(d => d != Directions.None);
+            return counts.Max();
+        }
+    }
+
+    IEnumerable<(Vector2Int position, Directions direction)> startingPositions {
+        get {
+            for (int x = 0; x < map.width; x++) {
+                yield return (new(x, 0), Directions.Down);
+                yield return (new(x, map.height - 1), Directions.Up);
+            }
+
+            for (int y = 0; y < map.height; y++) {
+                yield return (new(0, y), Directions.Right);
+                yield return (new(map.width - 1, y), Directions.Left);
+            }
         }
     }
 
@@ -47,6 +72,7 @@ sealed class Runtime(string file) {
         }
     }
 }
+
 [Flags]
 public enum Directions {
     None = 0,

@@ -5,10 +5,16 @@ namespace Day16;
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
     [TestCase("example-1.txt", 46)]
-    public void Test_Runtime_SumOfHashes(string file, int expected) {
+    public void Test_Runtime_NumberOfEnergizedTiles(string file, int expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.numberOfEnergizedTiles, Is.EqualTo(expected));
+    }
+    [TestCase("example-1.txt", 51)]
+    public void Test_Runtime_MaximumNumberOfEnergizedTiles(string file, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.maximumNumberOfEnergizedTiles, Is.EqualTo(expected));
     }
 
     [TestCase('.', Directions.Up, Directions.Up)]
