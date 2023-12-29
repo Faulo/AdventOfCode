@@ -9,7 +9,7 @@ sealed class Runtime(string file) {
         get {
             var energized = new Directions[map.width, map.height];
 
-            Move(energized, 0, 0, Directions.Right);
+            Move(energized, new(0, 0), Directions.Right);
 
             return energized
                 .AsEnumerable()
@@ -17,16 +17,38 @@ sealed class Runtime(string file) {
         }
     }
 
-    void Move(Directions[,] energized, int x, int y, Directions direction) {
-        if (energized[x, y].HasFlag(direction)) {
+    void Move(Directions[,] energized, Vector2Int position, Directions direction) {
+        if (!map.IsInBounds(position)) {
             return;
         }
 
-        energized[x, y] |= direction;
+        if (energized[position.x, position.y].HasFlag(direction)) {
+            return;
+        }
+
+        energized[position.x, position.y] |= direction;
+
+        var next = map[position].GetDirections(direction);
+
+        if (next.HasFlag(Directions.Up)) {
+            Move(energized, position + Vector2Int.up, Directions.Up);
+        }
+
+        if (next.HasFlag(Directions.Down)) {
+            Move(energized, position + Vector2Int.down, Directions.Down);
+        }
+
+        if (next.HasFlag(Directions.Left)) {
+            Move(energized, position + Vector2Int.left, Directions.Left);
+        }
+
+        if (next.HasFlag(Directions.Right)) {
+            Move(energized, position + Vector2Int.right, Directions.Right);
+        }
     }
 }
 [Flags]
-enum Directions {
+public enum Directions {
     None = 0,
     Up = 1 << 0,
     Down = 1 << 1,
@@ -44,5 +66,35 @@ static class Extensions {
                 yield return map[x, y];
             }
         }
+    }
+    internal static Directions GetDirections(this char tile, Directions source) {
+        return tile switch {
+            '.' => source,
+            '-' => source switch {
+                Directions.Up => Directions.Left | Directions.Right,
+                Directions.Down => Directions.Left | Directions.Right,
+                _ => source,
+            },
+            '|' => source switch {
+                Directions.Left => Directions.Up | Directions.Down,
+                Directions.Right => Directions.Up | Directions.Down,
+                _ => source,
+            },
+            '\\' => source switch {
+                Directions.Up => Directions.Left,
+                Directions.Down => Directions.Right,
+                Directions.Left => Directions.Up,
+                Directions.Right => Directions.Down,
+                _ => Directions.None,
+            },
+            '/' => source switch {
+                Directions.Up => Directions.Right,
+                Directions.Down => Directions.Left,
+                Directions.Left => Directions.Down,
+                Directions.Right => Directions.Up,
+                _ => Directions.None,
+            },
+            _ => Directions.None,
+        };
     }
 }
