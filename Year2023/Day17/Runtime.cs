@@ -1,5 +1,5 @@
 ﻿using Utilities;
-using HeatKey = (int x, int y, Day17.Directions first, Day17.Directions second, Day17.Directions third);
+using HeatKey = (int x, int y, Day17.Directions direction, int count);
 
 namespace Day17;
 
@@ -167,8 +167,7 @@ class Node {
             position.x,
             position.y,
             direction,
-            parent is null ? Directions.None : parent.direction,
-            parent is null || parent.parent is null ? Directions.None : parent.parent.direction
+            GetDirectionCount(direction)
         );
     }
 
@@ -176,7 +175,7 @@ class Node {
         return obj is Node other && heatKey == other.heatKey;
     }
 
-    public override int GetHashCode() => HashCode.Combine(heatKey.x, heatKey.y, heatKey.first, heatKey.second, heatKey.third);
+    public override int GetHashCode() => HashCode.Combine(heatKey.x, heatKey.y, heatKey.direction, heatKey.count);
 
     internal static readonly Node empty = new(null, new(0, 0), Directions.None, 0);
 
