@@ -1,4 +1,5 @@
 ﻿using Utilities;
+using HeatKey = (int, int, Day17.Directions);
 
 namespace Day17;
 
@@ -13,7 +14,7 @@ sealed class Runtime {
     }
 
     int currentHeatLoss;
-    readonly Dictionary<(Vector2Int position, Directions direction), int> heatLossMap = [];
+    readonly Dictionary<HeatKey, int> heatLossMap = [];
 
     bool useMultithreading = false;
 
@@ -37,12 +38,7 @@ sealed class Runtime {
     void WalkToGoal(Node node) {
         foreach (var next in allDirections) {
             if (TryCreateNode(node, next, out var child)) {
-                if (child.position == goal) {
-                    currentHeatLoss = child.heatLossSum;
-                    // Console.WriteLine($"{currentHeatLoss}: {child}");
-                } else {
-                    WalkToGoal(child);
-                }
+                WalkToGoal(child);
             }
         }
     }
@@ -70,19 +66,29 @@ sealed class Runtime {
             return false;
         }
 
-        var key = (position, direction);
-
         child = new(node, position, direction, map[position].AsInteger());
 
-        if (heatLossMap.TryGetValue(key, out int heatLoss)) {
-            if (heatLoss < child.heatLossSum) {
+        if (child.heatLossSum >= currentHeatLoss) {
+            return false;
+        }
+
+        if (child.position == goal) {
+            currentHeatLoss = child.heatLossSum;
+            Console.WriteLine(currentHeatLoss);
+            // Console.WriteLine(child);
+
+            return false;
+        }
+
+        if (heatLossMap.TryGetValue(child.heatKey, out int previousHeatLoss)) {
+            if (previousHeatLoss < child.heatLossSum) {
                 return false;
             }
         }
 
-        heatLossMap[key] = child.heatLossSum;
+        heatLossMap[child.heatKey] = child.heatLossSum;
 
-        return child.heatLossSum < currentHeatLoss;
+        return true;
     }
 
     void Walk(Vector2Int position, Directions direction, IEnumerable<Vector2Int> positions, int heatLoss = 0, int directionCount = 0) {
@@ -192,6 +198,7 @@ class Node {
     internal readonly Directions direction;
     internal readonly int heatLoss;
     internal readonly int heatLossSum;
+    internal readonly HeatKey heatKey;
 
     public Node(Node? parent, Vector2Int position, Directions direction, int heatLoss) {
         this.parent = parent;
@@ -202,6 +209,14 @@ class Node {
         heatLossSum = parent is null
             ? heatLoss
             : heatLoss + parent.heatLossSum;
+
+        heatKey = (
+            position.x,
+            position.y,
+            direction
+            //,parent is null ? Directions.None : parent.direction,
+            //,parent is null || parent.parent is null ? Directions.None : parent.parent.direction
+        );
     }
 
     internal static readonly Node empty = new(null, new(0, 0), Directions.None, 0);
