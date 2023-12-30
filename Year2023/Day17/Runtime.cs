@@ -13,12 +13,14 @@ sealed class Runtime {
     }
 
     int currentHeatLoss;
+    readonly Dictionary<(Vector2Int position, Directions direction), int> heatLossMap = [];
 
     bool useMultithreading = false;
 
     internal int mininumHeatLoss {
         get {
             currentHeatLoss = stubHeatLoss;
+            heatLossMap.Clear();
 
             if (useMultithreading) {
                 Parallel.ForEachAsync(new[] { Directions.Right }, async (direction, token) => {
@@ -37,7 +39,7 @@ sealed class Runtime {
             if (TryCreateNode(node, next, out var child)) {
                 if (child.position == goal) {
                     currentHeatLoss = child.heatLossSum;
-                    Console.WriteLine($"{currentHeatLoss}: {child}");
+                    // Console.WriteLine($"{currentHeatLoss}: {child}");
                 } else {
                     WalkToGoal(child);
                 }
@@ -57,12 +59,29 @@ sealed class Runtime {
         }
 
         var position = node.position + direction.GetOffset();
+
         if (!map.IsInBounds(position)) {
             child = Node.empty;
             return false;
         }
 
+        if (node.ContainsPosition(position)) {
+            child = Node.empty;
+            return false;
+        }
+
+        var key = (position, direction);
+
         child = new(node, position, direction, map[position].AsInteger());
+
+        if (heatLossMap.TryGetValue(key, out int heatLoss)) {
+            if (heatLoss < child.heatLossSum) {
+                return false;
+            }
+        }
+
+        heatLossMap[key] = child.heatLossSum;
+
         return child.heatLossSum < currentHeatLoss;
     }
 
@@ -200,6 +219,16 @@ class Node {
         return true;
     }
 
+    internal bool ContainsPosition(Vector2Int position) {
+        for (var node = this; node is not null; node = node.parent) {
+            if (node.position == position) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     IEnumerable<Node> ancestors {
         get {
             for (var node = this; node is not null; node = node.parent) {
@@ -209,7 +238,10 @@ class Node {
     }
 
     public override string ToString() {
-        return string.Join('>', ancestors.Select(node => (node.position.x, node.position.y)));
+        return string.Join(
+            string.Empty,
+            ancestors.Reverse().Select(node => node.direction.ToCharacter() + (node.position.x, node.position.y))
+        );
     }
 }
 
@@ -253,6 +285,15 @@ static class Extensions {
             Directions.Left => Vector2Int.left,
             Directions.Right => Vector2Int.right,
             _ => new(0, 0),
+        };
+    }
+    internal static string ToCharacter(this Directions direction) {
+        return direction switch {
+            Directions.Up => "^",
+            Directions.Down => "v",
+            Directions.Left => "<",
+            Directions.Right => ">",
+            _ => "o",
         };
     }
 }
