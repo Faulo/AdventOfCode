@@ -52,13 +52,13 @@ sealed class Runtime {
                 .First();
 
             if (current.position == goal) {
-                return;
+                break;
             }
 
             openSet.Remove(current);
 
             foreach (var next in allDirections) {
-                if (AStarTryCreateNode(current, next, out var child)) {
+                if (TryCreateNode(current, next, out var child)) {
                     if (!gScore.TryGetValue(child, out int score) || child.heatLossSum < score) {
                         gScore[child] = child.heatLossSum;
                         openSet.Add(child);
@@ -68,7 +68,7 @@ sealed class Runtime {
         } while (openSet.Count > 0);
     }
 
-    bool AStarTryCreateNode(Node node, Directions direction, out Node child) {
+    bool TryCreateNode(Node node, Directions direction, out Node child) {
         if (direction == node.direction.GetOpposite()) {
             child = Node.empty;
             return false;
@@ -80,23 +80,6 @@ sealed class Runtime {
             return false;
         }
 
-        if (node.direction != Directions.None && node.direction != direction) {
-            count = node.GetDirectionCount(node.direction);
-            if (count < minDirectionCount) {
-                child = Node.empty;
-                return false;
-            }
-
-            var p = node.position;
-            for (int i = 0; i < minDirectionCount; i++) {
-                p += direction.GetOffset();
-                if (!map.IsInBounds(p)) {
-                    child = Node.empty;
-                    return false;
-                }
-            }
-        }
-
         var position = node.position + direction.GetOffset();
 
         if (!map.IsInBounds(position)) {
@@ -105,6 +88,23 @@ sealed class Runtime {
         }
 
         child = new(node, position, direction, map[position].AsInteger());
+
+        if (node.direction != Directions.None && node.direction != direction) {
+            count = node.GetDirectionCount(node.direction);
+            if (count < minDirectionCount) {
+                child = Node.empty;
+                return false;
+            }
+
+            for (int i = 1; i < minDirectionCount; i++) {
+                position += direction.GetOffset();
+                if (!map.IsInBounds(position)) {
+                    return false;
+                }
+
+                child = new(child, position, direction, map[position].AsInteger());
+            }
+        }
 
         if (child.position == goal) {
             if (currentHeatLoss > child.heatLossSum) {

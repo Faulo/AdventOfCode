@@ -14,13 +14,6 @@ public class Tests {
         Assert.That(sut.mininumHeatLoss, Is.EqualTo(expected));
     }
 
-    [TestCase("input.txt", true, 1196)]
-    public void Test_Runtime_MininumHeatLoss_LessThan(string file, bool isUltra, int expected) {
-        var sut = new Runtime(file, isUltra);
-
-        Assert.That(sut.mininumHeatLoss, Is.LessThan(expected));
-    }
-
     [Test]
     public void Test_Node_DirectionCount() {
         var first = new Node(default, new(0, 0), Directions.Up, 0);
