@@ -4,22 +4,32 @@ using HeatKey = (int x, int y, Day17.Directions first, Day17.Directions second, 
 namespace Day17;
 
 sealed class Runtime {
+    static readonly bool logOutput = false;
 
     readonly CharacterMap map;
     readonly Vector2Int goal;
 
-    internal Runtime(string file) {
+    readonly int minDirectionCount;
+    readonly int maxDirectionCount;
+
+    internal Runtime(string file, bool isUltra = false) {
         map = new FileInput(file).ReadAllAsCharacterMap();
         goal = new(map.width - 1, map.height - 1);
+
+        if (isUltra) {
+            minDirectionCount = 4;
+            maxDirectionCount = 10;
+        } else {
+            minDirectionCount = 0;
+            maxDirectionCount = 3;
+        }
     }
 
     int currentHeatLoss;
-    readonly Dictionary<HeatKey, int> heatLossMap = [];
 
     internal int mininumHeatLoss {
         get {
-            currentHeatLoss = stubHeatLoss;
-            heatLossMap.Clear();
+            currentHeatLoss = 10 * map.width * map.height;
 
             AStar(Node.empty);
 
@@ -64,9 +74,27 @@ sealed class Runtime {
             return false;
         }
 
-        if (node.IsDirectionCount(direction, 3)) {
+        int count = node.GetDirectionCount(direction);
+        if (count == maxDirectionCount) {
             child = Node.empty;
             return false;
+        }
+
+        if (node.direction != Directions.None && node.direction != direction) {
+            count = node.GetDirectionCount(node.direction);
+            if (count < minDirectionCount) {
+                child = Node.empty;
+                return false;
+            }
+
+            var p = node.position;
+            for (int i = 0; i < minDirectionCount; i++) {
+                p += direction.GetOffset();
+                if (!map.IsInBounds(p)) {
+                    child = Node.empty;
+                    return false;
+                }
+            }
         }
 
         var position = node.position + direction.GetOffset();
@@ -81,7 +109,12 @@ sealed class Runtime {
         if (child.position == goal) {
             if (currentHeatLoss > child.heatLossSum) {
                 currentHeatLoss = child.heatLossSum;
-                Console.WriteLine(currentHeatLoss);
+
+                if (logOutput) {
+                    Console.WriteLine(currentHeatLoss);
+                    Console.WriteLine(child);
+                }
+
                 return true;
             }
 
@@ -89,142 +122,6 @@ sealed class Runtime {
         }
 
         return currentHeatLoss > child.heatLossSum;
-    }
-
-    void WalkToGoal(Node node) {
-        foreach (var next in allDirections) {
-            if (TryCreateNode(node, next, out var child)) {
-                WalkToGoal(child);
-            }
-        }
-    }
-
-    bool TryCreateNode(Node node, Directions direction, out Node child) {
-        if (direction == node.direction.GetOpposite()) {
-            child = Node.empty;
-            return false;
-        }
-
-        if (node.IsDirectionCount(direction, 3)) {
-            child = Node.empty;
-            return false;
-        }
-
-        var position = node.position + direction.GetOffset();
-
-        if (!map.IsInBounds(position)) {
-            child = Node.empty;
-            return false;
-        }
-
-        if (node.ContainsPosition(position)) {
-            child = Node.empty;
-            return false;
-        }
-
-        child = new(node, position, direction, map[position].AsInteger());
-
-        if (child.heatLossSum >= currentHeatLoss) {
-            return false;
-        }
-
-        if (child.position == goal) {
-            currentHeatLoss = child.heatLossSum;
-            Console.WriteLine(currentHeatLoss);
-            // Console.WriteLine(child);
-
-            return false;
-        }
-
-        if (heatLossMap.TryGetValue(child.heatKey, out int previousHeatLoss)) {
-            if (previousHeatLoss < child.heatLossSum) {
-                return false;
-            }
-        }
-
-        heatLossMap[child.heatKey] = child.heatLossSum;
-
-        return true;
-    }
-
-    void Walk(Vector2Int position, Directions direction, IEnumerable<Vector2Int> positions, int heatLoss = 0, int directionCount = 0) {
-        if (!map.IsInBounds(position)) {
-            return;
-        }
-
-        heatLoss += map[position].AsInteger();
-
-        if (heatLoss >= currentHeatLoss) {
-            return;
-        }
-
-        if (position == goal) {
-            currentHeatLoss = heatLoss;
-            Console.WriteLine(heatLoss + ": " + string.Join('>', positions.Select(p => (p.x, p.y))));
-            return;
-        }
-
-        var newPositions = new HashSet<Vector2Int>(positions);
-        if (!newPositions.Add(position)) {
-            return;
-        }
-
-        var opposite = direction.GetOpposite();
-
-        foreach (var next in allDirections) {
-            if (opposite != next) {
-                int count = direction == next
-                    ? directionCount + 1
-                    : 0;
-                if (count < 3) {
-                    Walk(position + next.GetOffset(), next, newPositions, heatLoss, count);
-                }
-            }
-        }
-
-        return;
-    }
-
-    async Task WalkAsync(Vector2Int position, Directions direction, IEnumerable<Vector2Int> positions, CancellationToken token, int heatLoss = 0, int directionCount = 0) {
-        if (token.IsCancellationRequested) {
-            return;
-        }
-
-        if (!map.IsInBounds(position)) {
-            return;
-        }
-
-        heatLoss += map[position].AsInteger();
-
-        lock (this) {
-            if (heatLoss >= currentHeatLoss) {
-                return;
-            }
-
-            if (position == goal) {
-                currentHeatLoss = heatLoss;
-                Console.WriteLine(heatLoss + ": " + string.Join('>', positions.Select(p => (p.x, p.y))));
-                return;
-            }
-        }
-
-        var newPositions = new HashSet<Vector2Int>(positions);
-        if (!newPositions.Add(position)) {
-            return;
-        }
-
-        var opposite = direction.GetOpposite();
-
-        await Parallel.ForEachAsync(allDirections, token, async (next, token) => {
-            if (opposite != next) {
-                int count = direction == next
-                    ? directionCount + 1
-                    : 0;
-                if (count < 3) {
-                    await WalkAsync(position + next.GetOffset(), next, newPositions, token, heatLoss, count);
-                }
-            }
-        });
     }
 
     static readonly Directions[] allDirections = {
@@ -283,17 +180,15 @@ class Node {
 
     internal static readonly Node empty = new(null, new(0, 0), Directions.None, 0);
 
-    internal bool IsDirectionCount(Directions direction, int count) {
+    internal int GetDirectionCount(Directions direction) {
         var node = this;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; ; i++) {
             if (node is null || node.direction != direction) {
-                return false;
+                return i;
             }
 
             node = node.parent;
         }
-
-        return true;
     }
 
     internal bool ContainsPosition(Vector2Int position) {
