@@ -1,5 +1,5 @@
 ﻿using Utilities;
-using HeatKey = (int, int, Day17.Directions);
+using HeatKey = (int x, int y, Day17.Directions first, Day17.Directions second, Day17.Directions third);
 
 namespace Day17;
 
@@ -16,23 +16,79 @@ sealed class Runtime {
     int currentHeatLoss;
     readonly Dictionary<HeatKey, int> heatLossMap = [];
 
-    bool useMultithreading = false;
-
     internal int mininumHeatLoss {
         get {
             currentHeatLoss = stubHeatLoss;
             heatLossMap.Clear();
 
-            if (useMultithreading) {
-                Parallel.ForEachAsync(new[] { Directions.Right }, async (direction, token) => {
-                    await WalkAsync(direction.GetOffset(), direction, Enumerable.Empty<Vector2Int>(), token);
-                }).Wait(300 * 1000);
-            } else {
-                WalkToGoal(Node.empty);
-            }
+            AStar(Node.empty);
 
             return currentHeatLoss;
         }
+    }
+
+    void AStar(Node startNode) {
+        var openSet = new HashSet<Node>() {
+            startNode
+        };
+
+        var gScore = new Dictionary<Node, int>() {
+            [startNode] = 0,
+        };
+
+        do {
+            var current = openSet
+                .OrderBy(n => n.heatLossSum)
+                .First();
+
+            if (current.position == goal) {
+                return;
+            }
+
+            openSet.Remove(current);
+
+            foreach (var next in allDirections) {
+                if (AStarTryCreateNode(current, next, out var child)) {
+                    if (!gScore.TryGetValue(child, out int score) || child.heatLossSum < score) {
+                        gScore[child] = child.heatLossSum;
+                        openSet.Add(child);
+                    }
+                }
+            }
+        } while (openSet.Count > 0);
+    }
+
+    bool AStarTryCreateNode(Node node, Directions direction, out Node child) {
+        if (direction == node.direction.GetOpposite()) {
+            child = Node.empty;
+            return false;
+        }
+
+        if (node.IsDirectionCount(direction, 3)) {
+            child = Node.empty;
+            return false;
+        }
+
+        var position = node.position + direction.GetOffset();
+
+        if (!map.IsInBounds(position)) {
+            child = Node.empty;
+            return false;
+        }
+
+        child = new(node, position, direction, map[position].AsInteger());
+
+        if (child.position == goal) {
+            if (currentHeatLoss > child.heatLossSum) {
+                currentHeatLoss = child.heatLossSum;
+                Console.WriteLine(currentHeatLoss);
+                return true;
+            }
+
+            return false;
+        }
+
+        return currentHeatLoss > child.heatLossSum;
     }
 
     void WalkToGoal(Node node) {
@@ -213,11 +269,17 @@ class Node {
         heatKey = (
             position.x,
             position.y,
-            direction
-            //,parent is null ? Directions.None : parent.direction,
-            //,parent is null || parent.parent is null ? Directions.None : parent.parent.direction
+            direction,
+            parent is null ? Directions.None : parent.direction,
+            parent is null || parent.parent is null ? Directions.None : parent.parent.direction
         );
     }
+
+    public override bool Equals(object? obj) {
+        return obj is Node other && heatKey == other.heatKey;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(heatKey.x, heatKey.y, heatKey.first, heatKey.second, heatKey.third);
 
     internal static readonly Node empty = new(null, new(0, 0), Directions.None, 0);
 

@@ -42,4 +42,18 @@ public class Tests {
         var node = new Node(Node.empty, new(1, 0), Directions.Right, 0);
         Assert.That(node.ToString(), Is.EqualTo("o(0, 0)>(1, 0)"));
     }
+
+    [Test]
+    public void Test_Nodes_Equals() {
+        var set = new HashSet<Node> {
+            new(Node.empty, new(1, 0), Directions.Right, 0),
+            new(Node.empty, new(1, 0), Directions.Right, 0),
+            new(Node.empty, new(1, 0), Directions.Up, 0),
+            new(Node.empty, new(1, 0), Directions.Up, 0),
+            new(Node.empty, new(0, 1), Directions.Right, 0),
+            new(Node.empty, new(0, 1), Directions.Right, 0),
+        };
+
+        Assert.That(set.Count, Is.EqualTo(3));
+    }
 }
