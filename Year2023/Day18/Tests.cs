@@ -57,6 +57,14 @@ public class Tests {
         Assert.That(Runtime.ParseLine(line), Is.EqualTo(new Vector2Int(x, y)));
     }
 
+    [TestCase("R 6 (#70c710)", 461937, 0)]
+    [TestCase("D 5 (#0dc571)", 0, 56407)]
+    [TestCase("L 2 (#8ceee2)", -577262, 0)]
+    [TestCase("U 3 (#caa173)", 0, -829975)]
+    public void Test_Runtime_ParseColor(string line, int x, int y) {
+        Assert.That(Runtime.ParseColor(line), Is.EqualTo(new Vector2Int(x, y)));
+    }
+
     [Test]
     public void Test_Runtime_TransposeToPositive() {
         List<Vector2Int> path = [

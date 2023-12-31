@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using Utilities;
 
 namespace Day18;
@@ -109,6 +110,19 @@ sealed class Runtime {
             "D" => Vector2Int.down,
             "L" => Vector2Int.left,
             "R" => Vector2Int.right,
+            _ => Vector2Int.zero,
+        } * value;
+    }
+
+    internal static Vector2Int ParseColor(string line) {
+        string[] cells = line.Split(' ');
+        int value = int.Parse(cells[2][2..^2], NumberStyles.HexNumber);
+        int direction = int.Parse(cells[2][^2..^1]);
+        return direction switch {
+            0 => Vector2Int.right,
+            1 => Vector2Int.down,
+            2 => Vector2Int.left,
+            3 => Vector2Int.up,
             _ => Vector2Int.zero,
         } * value;
     }
