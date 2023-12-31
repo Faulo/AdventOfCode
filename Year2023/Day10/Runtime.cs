@@ -22,22 +22,22 @@ sealed class Runtime {
             int i = 0;
             for (int x = 0; x < width; x++) {
                 var borderCount = new Dictionary<Directions, int> {
-                    [Directions.West] = 0,
-                    [Directions.East] = 0,
+                    [Directions.Left] = 0,
+                    [Directions.Right] = 0,
                 };
                 for (int y = 0; y < height; y++) {
                     var position = new Vector2(x, y);
                     bool isOnPath = IsOnPath(position);
                     var directions = this[position].GetDirections();
-                    bool isBorder = isOnPath && (directions & (Directions.West | Directions.East)) != 0;
+                    bool isBorder = isOnPath && (directions & (Directions.Left | Directions.Right)) != 0;
 
                     if (isBorder) {
-                        if (directions.HasFlag(Directions.West)) {
-                            borderCount[Directions.West]++;
+                        if (directions.HasFlag(Directions.Left)) {
+                            borderCount[Directions.Left]++;
                         }
 
-                        if (directions.HasFlag(Directions.East)) {
-                            borderCount[Directions.East]++;
+                        if (directions.HasFlag(Directions.Right)) {
+                            borderCount[Directions.Right]++;
                         }
                     }
 
@@ -130,15 +130,6 @@ sealed class Runtime {
     }
 }
 
-[Flags]
-enum Directions {
-    None = 0,
-    North = 1 << 0,
-    East = 1 << 1,
-    South = 1 << 2,
-    West = 1 << 3,
-}
-
 sealed record Vector2(int x, int y) {
     public static Vector2 operator +(Vector2 a, Vector2 b) => new(a.x + b.x, a.y + b.y);
     public static Vector2 operator -(Vector2 a, Vector2 b) => new(a.x - b.x, a.y - b.y);
@@ -147,52 +138,52 @@ sealed record Vector2(int x, int y) {
 static class Extensions {
     internal static Directions GetDirections(this char pipe) {
         return pipe switch {
-            '|' => Directions.North | Directions.South, // is a vertical pipe connecting north and south.
-            '-' => Directions.East | Directions.West, // is a horizontal pipe connecting east and west.
-            'L' => Directions.North | Directions.East, // is a 90 - degree bend connecting north and east.
-            'J' => Directions.North | Directions.West, // is a 90 - degree bend connecting north and west.
-            '7' => Directions.South | Directions.West, // is a 90 - degree bend connecting south and west.
-            'F' => Directions.South | Directions.East, // is a 90-degree bend connecting south and east.
+            '|' => Directions.Up | Directions.Down, // is a vertical pipe connecting north and south.
+            '-' => Directions.Right | Directions.Left, // is a horizontal pipe connecting east and west.
+            'L' => Directions.Up | Directions.Right, // is a 90 - degree bend connecting north and east.
+            'J' => Directions.Up | Directions.Left, // is a 90 - degree bend connecting north and west.
+            '7' => Directions.Down | Directions.Left, // is a 90 - degree bend connecting south and west.
+            'F' => Directions.Down | Directions.Right, // is a 90-degree bend connecting south and east.
             _ => Directions.None,
         };
     }
 
     internal static char GetCharacter(this Directions direction) {
         return direction switch {
-            Directions.North | Directions.South => '|', // is a vertical pipe connecting north and south.
-            Directions.East | Directions.West => '-', // is a horizontal pipe connecting east and west.
-            Directions.North | Directions.East => 'L', // is a 90 - degree bend connecting north and east.
-            Directions.North | Directions.West => 'J', // is a 90 - degree bend connecting north and west.
-            Directions.South | Directions.West => '7', // is a 90 - degree bend connecting south and west.
-            Directions.South | Directions.East => 'F', // is a 90-degree bend connecting south and east.
+            Directions.Up | Directions.Down => '|', // is a vertical pipe connecting north and south.
+            Directions.Right | Directions.Left => '-', // is a horizontal pipe connecting east and west.
+            Directions.Up | Directions.Right => 'L', // is a 90 - degree bend connecting north and east.
+            Directions.Up | Directions.Left => 'J', // is a 90 - degree bend connecting north and west.
+            Directions.Down | Directions.Left => '7', // is a 90 - degree bend connecting south and west.
+            Directions.Down | Directions.Right => 'F', // is a 90-degree bend connecting south and east.
             _ => '.',
         };
     }
 
     internal static IEnumerable<Vector2> GetOffsets(this Directions directions) {
-        if (directions.HasFlag(Directions.North)) {
+        if (directions.HasFlag(Directions.Up)) {
             yield return new(0, -1);
         }
 
-        if (directions.HasFlag(Directions.East)) {
+        if (directions.HasFlag(Directions.Right)) {
             yield return new(1, 0);
         }
 
-        if (directions.HasFlag(Directions.South)) {
+        if (directions.HasFlag(Directions.Down)) {
             yield return new(0, 1);
         }
 
-        if (directions.HasFlag(Directions.West)) {
+        if (directions.HasFlag(Directions.Left)) {
             yield return new(-1, 0);
         }
     }
 
     internal static Directions GetDirections(this Vector2 offset) {
         return (offset.x, offset.y) switch {
-            (0, -1) => Directions.North,
-            (1, 0) => Directions.East,
-            (0, 1) => Directions.South,
-            (-1, 0) => Directions.West,
+            (0, -1) => Directions.Up,
+            (1, 0) => Directions.Right,
+            (0, 1) => Directions.Down,
+            (-1, 0) => Directions.Left,
             _ => Directions.None,
         };
     }
