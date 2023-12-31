@@ -6,17 +6,28 @@ namespace Day18;
 sealed class Runtime {
     internal int totalDigArea => pathLength + insideArea;
 
-    int FloodFill(Vector2Int position) {
-        int sum = 1;
+    int FloodFill(Vector2Int position, char character) {
+        int sum = 0;
 
-        map[position] = '#';
+        var queue = new HashSet<Vector2Int> {
+            position
+        };
 
-        foreach (var offset in offsets) {
-            var p = position + offset;
-            if (map.IsInBounds(p) && map[p] == '.') {
-                sum += FloodFill(p);
+        do {
+            position = queue.First();
+            queue.Remove(position);
+
+            if (map[position] == '.') {
+                map[position] = character;
+                sum++;
+                foreach (var offset in offsets) {
+                    var p = position + offset;
+                    if (map.IsInBounds(p) && map[p] == '.') {
+                        queue.Add(p);
+                    }
+                }
             }
-        }
+        } while (queue.Count > 0);
 
         return sum;
     }
@@ -27,29 +38,30 @@ sealed class Runtime {
         Vector2Int.right,
     ];
 
-    internal Vector2Int firstPositionInside {
-        get {
-            for (int y = 1; y < height; y++) {
-                for (int x = 1; x < width; x++) {
-                    if (IsOnPath(new(x - 1, y)) && IsOnPath(new(x, y - 1))) {
-                        return new(x, y);
-                    }
-                }
-            }
-
-            throw new Exception();
-        }
-    }
-
     readonly List<Vector2Int> path = [];
     readonly int width;
     readonly int height;
     readonly CharacterMap map;
+    internal readonly Vector2Int firstPositionInside;
+
+    Vector2Int GetFirstPositionInside() {
+        for (int y = 1; y < height; y++) {
+            for (int x = 1; x < width; x++) {
+                var p = new Vector2Int(x, y);
+                if (!IsOnPath(p) && IsOnPath(new(x - 1, y)) && IsOnPath(new(x, y - 1))) {
+                    return p;
+                }
+            }
+        }
+
+        throw new Exception();
+    }
+
     internal readonly int pathLength;
     internal readonly int insideArea;
 
     internal bool IsOnPath(Vector2Int position) {
-        return map[position.x, position.y] == '#';
+        return map[position] == '#';
     }
 
     internal Runtime(string file) {
@@ -85,7 +97,8 @@ sealed class Runtime {
 
         this.map = new(map);
 
-        insideArea = FloodFill(firstPositionInside);
+        firstPositionInside = GetFirstPositionInside();
+        insideArea = FloodFill(firstPositionInside, 'o');
     }
 
     internal static Vector2Int ParseLine(string line) {

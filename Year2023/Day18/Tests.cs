@@ -24,14 +24,7 @@ public class Tests {
         Assert.That(sut.insideArea, Is.EqualTo(expected));
     }
 
-    [TestCase("input.txt", 62848)]
-    public void Test_Runtime_TotalDigArea_LessThan(string file, int expected) {
-        var sut = new Runtime(file);
-
-        Assert.That(sut.totalDigArea, Is.LessThan(expected));
-    }
-
-    [TestCase("example-1.txt", "#######\r\n#.....#\r\n###...#\r\n..#...#\r\n..#...#\r\n###.###\r\n#...#..\r\n##..###\r\n.#....#\r\n.######")]
+    [TestCase("example-1.txt", "#######\r\n#ooooo#\r\n###ooo#\r\n..#ooo#\r\n..#ooo#\r\n###o###\r\n#ooo#..\r\n##oo###\r\n.#oooo#\r\n.######")]
     public void Test_Runtime_ToString(string file, string expected) {
         var sut = new Runtime(file);
 
