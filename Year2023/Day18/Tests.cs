@@ -85,6 +85,22 @@ public class Tests {
         Assert.That(path, Is.EqualTo(expected));
     }
 
+    [TestCase(1)]
+    [TestCase(2)]
+    [TestCase(3)]
+    [TestCase(50)]
+    public void Test_Runtime_ScaleToSmallest(int expected) {
+        List<Vector2Int> path = [
+            new Vector2Int(0, 0) * expected,
+            new Vector2Int(1, 7) * expected,
+            new Vector2Int(3, 15) * expected,
+        ];
+
+        int scale = Runtime.ScaleToSmallest(path);
+
+        Assert.That(scale, Is.EqualTo(expected));
+    }
+
     [Test]
     public void Test_Runtime_MoveBetween_X() {
         var start = new Vector2Int(0, 0);

@@ -147,6 +147,31 @@ sealed class Runtime {
         }
     }
 
+    internal static int ScaleToSmallest(IList<Vector2Int> path) {
+        int scale = Math.Min(
+            path.Where(p => p.x > 0).Min(p => p.x),
+            path.Where(p => p.y > 0).Min(p => p.y)
+        );
+
+        while (scale > 1) {
+            bool isMatch = true;
+            for (int i = 0; i < path.Count; i++) {
+                if (path[i].x % scale != 0 || path[i].y % scale != 0) {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch) {
+                return scale;
+            }
+
+            scale--;
+        }
+
+        return scale;
+    }
+
     internal static IEnumerable<Vector2Int> MoveBetween(Vector2Int start, Vector2Int goal) {
         if (start.x == goal.x) {
             int direction = goal.y - start.y > 0
