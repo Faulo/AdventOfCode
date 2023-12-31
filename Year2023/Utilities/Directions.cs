@@ -1,7 +1,7 @@
 ﻿namespace Utilities;
 
 [Flags]
-public enum Directions {
+public enum Directions : byte {
     None = 0,
     Up = 1 << 0,
     Down = 1 << 1,
