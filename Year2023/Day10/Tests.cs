@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Utilities;
 
 namespace Day10;
 
@@ -26,7 +27,7 @@ public class Tests {
     public void Test_Runtime_Start(string file, int expectedX, int expectedY) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.start, Is.EqualTo(new Vector2(expectedX, expectedY)));
+        Assert.That(runtime.start, Is.EqualTo(new Vector2Int(expectedX, expectedY)));
     }
 
     [TestCase("example-1.txt", 'F')]
@@ -47,7 +48,7 @@ public class Tests {
     public void Test_Runtime_GetNeighborsPointingTo(string file, int x, int y, int expectedX, int expectedY) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.GetNeighborsPointingTo(new Vector2(x, y)), Contains.Item(new Vector2(expectedX, expectedY)));
+        Assert.That(runtime.GetNeighborsPointingTo(new Vector2Int(x, y)), Contains.Item(new Vector2Int(expectedX, expectedY)));
     }
 
     [TestCase("example-1.txt", 2, 1, 1, 1)]
@@ -57,7 +58,7 @@ public class Tests {
     public void Test_Runtime_GetNeighborsPointingFrom(string file, int x, int y, int expectedX, int expectedY) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.GetNeighborsPointingFrom(new Vector2(x, y)), Contains.Item(new Vector2(expectedX, expectedY)));
+        Assert.That(runtime.GetNeighborsPointingFrom(new Vector2Int(x, y)), Contains.Item(new Vector2Int(expectedX, expectedY)));
     }
 
     [TestCase("example-3.txt", 1, 1)]
@@ -70,7 +71,7 @@ public class Tests {
     public void Test_Runtime_IsOnpath(string file, int x, int y) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.IsOnPath(new Vector2(x, y)), Is.True);
+        Assert.That(runtime.IsOnPath(new Vector2Int(x, y)), Is.True);
     }
 
     [TestCase("example-3.txt", 1, 8)]
@@ -80,6 +81,6 @@ public class Tests {
     public void Test_Runtime_IsNotOnPath(string file, int x, int y) {
         var runtime = new Runtime(file);
 
-        Assert.That(runtime.IsOnPath(new Vector2(x, y)), Is.False);
+        Assert.That(runtime.IsOnPath(new Vector2Int(x, y)), Is.False);
     }
 }

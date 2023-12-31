@@ -4,7 +4,7 @@ using Utilities;
 namespace Day10;
 
 sealed class Runtime {
-    internal char this[Vector2 position] {
+    internal char this[Vector2Int position] {
         get {
             return map[position.x, position.y];
         }
@@ -13,9 +13,9 @@ sealed class Runtime {
     readonly char[,] map;
     readonly int width;
     readonly int height;
-    internal readonly Vector2 start;
+    internal readonly Vector2Int start;
 
-    readonly HashSet<Vector2> path;
+    readonly HashSet<Vector2Int> path;
     internal int maximumDistance => path.Count / 2;
     internal int enclosedArea {
         get {
@@ -26,7 +26,7 @@ sealed class Runtime {
                     [Directions.Right] = 0,
                 };
                 for (int y = 0; y < height; y++) {
-                    var position = new Vector2(x, y);
+                    var position = new Vector2Int(x, y);
                     bool isOnPath = IsOnPath(position);
                     var directions = this[position].GetDirections();
                     bool isBorder = isOnPath && (directions & (Directions.Left | Directions.Right)) != 0;
@@ -71,7 +71,7 @@ sealed class Runtime {
         }
     }
 
-    Vector2 GetStart() {
+    Vector2Int GetStart() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (map[x, y] == 'S') {
@@ -83,12 +83,12 @@ sealed class Runtime {
         throw new Exception();
     }
 
-    internal char GetCharacterPointingTo(Vector2 position) {
+    internal char GetCharacterPointingTo(Vector2Int position) {
         var direction = Directions.None;
         foreach (var neighbor in GetNeighbors(position)) {
             foreach (var offset in this[neighbor].GetDirections().GetOffsets()) {
                 if (offset == position - neighbor) {
-                    direction |= new Vector2(-offset.x, -offset.y).GetDirections();
+                    direction |= new Vector2Int(-offset.x, -offset.y).GetDirections();
                 }
             }
         }
@@ -96,7 +96,7 @@ sealed class Runtime {
         return direction.GetCharacter();
     }
 
-    internal IEnumerable<Vector2> GetNeighborsPointingTo(Vector2 position) {
+    internal IEnumerable<Vector2Int> GetNeighborsPointingTo(Vector2Int position) {
         foreach (var neighbor in GetNeighbors(position)) {
             if (this[neighbor].GetDirections().GetOffsets().Any(offset => offset == position - neighbor)) {
                 yield return neighbor;
@@ -104,35 +104,30 @@ sealed class Runtime {
         }
     }
 
-    internal IEnumerable<Vector2> GetNeighborsPointingFrom(Vector2 position) {
+    internal IEnumerable<Vector2Int> GetNeighborsPointingFrom(Vector2Int position) {
         return this[position]
             .GetDirections()
             .GetOffsets()
             .Select(offset => position + offset);
     }
 
-    IEnumerable<Vector2> GetNeighbors(Vector2 position) {
+    IEnumerable<Vector2Int> GetNeighbors(Vector2Int position) {
         for (int x = position.x - 1; x <= position.x + 1; x++) {
             for (int y = position.y - 1; y <= position.y + 1; y++) {
-                var neighbor = new Vector2(x, y);
+                var neighbor = new Vector2Int(x, y);
                 if (IsInBounds(neighbor) && neighbor != position) {
                     yield return neighbor;
                 }
             }
         }
     }
-    bool IsInBounds(Vector2 position) {
+    bool IsInBounds(Vector2Int position) {
         return position.x >= 0 && position.x < width
             && position.y >= 0 && position.y < height;
     }
-    internal bool IsOnPath(Vector2 position) {
+    internal bool IsOnPath(Vector2Int position) {
         return path.Contains(position);
     }
-}
-
-sealed record Vector2(int x, int y) {
-    public static Vector2 operator +(Vector2 a, Vector2 b) => new(a.x + b.x, a.y + b.y);
-    public static Vector2 operator -(Vector2 a, Vector2 b) => new(a.x - b.x, a.y - b.y);
 }
 
 static class Extensions {
@@ -160,7 +155,7 @@ static class Extensions {
         };
     }
 
-    internal static IEnumerable<Vector2> GetOffsets(this Directions directions) {
+    internal static IEnumerable<Vector2Int> GetOffsets(this Directions directions) {
         if (directions.HasFlag(Directions.Up)) {
             yield return new(0, -1);
         }
@@ -178,7 +173,7 @@ static class Extensions {
         }
     }
 
-    internal static Directions GetDirections(this Vector2 offset) {
+    internal static Directions GetDirections(this Vector2Int offset) {
         return (offset.x, offset.y) switch {
             (0, -1) => Directions.Up,
             (1, 0) => Directions.Right,
