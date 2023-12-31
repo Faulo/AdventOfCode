@@ -43,6 +43,9 @@
         public static Vector2Int operator *(Vector2Int a, int b) => new(a.x * b, a.y * b);
         public static Vector2Int operator *(int b, Vector2Int a) => new(a.x * b, a.y * b);
 
+        public static Vector2Int operator /(Vector2Int a, int b) => new(a.x / b, a.y / b);
+        public static Vector2Int operator /(int b, Vector2Int a) => new(a.x / b, a.y / b);
+
         public static bool operator ==(Vector2Int a, Vector2Int b) => a.x == b.x && a.y == b.y;
         public static bool operator !=(Vector2Int a, Vector2Int b) => a.x != b.x || a.y != b.y;
 

@@ -91,14 +91,18 @@ public class Tests {
     [TestCase(50)]
     public void Test_Runtime_ScaleToSmallest(int expected) {
         List<Vector2Int> path = [
-            new Vector2Int(0, 0) * expected,
-            new Vector2Int(1, 7) * expected,
-            new Vector2Int(3, 15) * expected,
+            new Vector2Int(0, 0),
+            new Vector2Int(1, 7),
+            new Vector2Int(3, 15),
         ];
+        var scaledPath = path
+            .Select(p => p * expected)
+            .ToList();
 
-        int scale = Runtime.ScaleToSmallest(path);
+        int scale = Runtime.ScaleToSmallest(scaledPath);
 
         Assert.That(scale, Is.EqualTo(expected));
+        Assert.That(scaledPath, Is.EqualTo(path));
     }
 
     [Test]

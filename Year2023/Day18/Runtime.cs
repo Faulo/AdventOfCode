@@ -163,6 +163,10 @@ sealed class Runtime {
             }
 
             if (isMatch) {
+                for (int i = 0; i < path.Count; i++) {
+                    path[i] /= scale;
+                }
+
                 return scale;
             }
 
