@@ -5,10 +5,10 @@ using Utilities;
 namespace Day18;
 
 sealed class Runtime {
-    internal int totalDigArea => pathLength + insideArea;
+    internal long totalDigArea => pathLength + insideArea;
 
-    int FloodFill(Vector2Int position, char character) {
-        int sum = 0;
+    long FloodFill(Vector2Int position, char character) {
+        long sum = 0;
 
         var queue = new HashSet<Vector2Int> {
             position
@@ -58,18 +58,20 @@ sealed class Runtime {
         throw new Exception();
     }
 
-    internal readonly int pathLength;
-    internal readonly int insideArea;
+    internal readonly long pathLength;
+    internal readonly long insideArea;
 
     internal bool IsOnPath(Vector2Int position) {
         return map[position] == '#';
     }
 
-    internal Runtime(string file) {
+    internal Runtime(string file, bool useColor = false) {
         var position = Vector2Int.zero;
         path.Add(position);
         foreach (string line in new FileInput(file).ReadLines()) {
-            position += ParseLine(line);
+            position += useColor
+                ? ParseColor(line)
+                : ParseLine(line);
             path.Add(position);
         }
 

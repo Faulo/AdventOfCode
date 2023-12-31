@@ -5,9 +5,10 @@ namespace Day18;
 
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
-    [TestCase("example-1.txt", 62)]
-    public void Test_Runtime_TotalDigArea(string file, int expected) {
-        var sut = new Runtime(file);
+    [TestCase("example-1.txt", false, 62)]
+    [TestCase("example-1.txt", true, 952408144115)]
+    public void Test_Runtime_TotalDigArea(string file, bool useColor, long expected) {
+        var sut = new Runtime(file, useColor);
 
         Assert.That(sut.totalDigArea, Is.EqualTo(expected));
     }
