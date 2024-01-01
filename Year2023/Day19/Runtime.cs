@@ -20,7 +20,19 @@ sealed class Runtime {
         }
     }
 
-    internal long distinctCombinationsOfAcceptedParts => 0;
+    internal long distinctCombinationsOfAcceptedParts {
+        get {
+            var ranges = FindAccepted()
+                .ToList();
+
+            long sum = 0;
+            foreach (var range in ranges) {
+                sum += range.GetCombinations();
+            }
+
+            return sum;
+        }
+    }
 
     internal readonly Dictionary<string, Workflow> workflows = [];
     internal readonly List<Part> parts = [];
@@ -40,6 +52,32 @@ sealed class Runtime {
         }
 
         throw new ArgumentOutOfRangeException(name);
+    }
+
+    internal IEnumerable<PartRange> FindAccepted() {
+        var range = (new Part(1, 1, 1, 1), new Part(4000, 4000, 4000, 4000));
+        string name = "in";
+
+        var ranges = new Queue<(PartRange range, string step)>();
+        ranges.Enqueue((range, name));
+
+        while (ranges.Count > 0) {
+            (range, name) = ranges.Dequeue();
+            var workflow = workflows[name];
+
+            foreach (var item in workflow.GetRanges(range)) {
+                switch (item.step) {
+                    case "A":
+                        yield return item.range;
+                        break;
+                    case "R":
+                        break;
+                    default:
+                        ranges.Enqueue(item);
+                        break;
+                }
+            }
+        }
     }
 
     internal Runtime(string file) {
@@ -95,8 +133,15 @@ readonly struct Workflow {
     internal IEnumerable<(PartRange range, string step)> GetRanges(PartRange range) {
         foreach (var step in steps) {
             if (step.TrySplitRange(range, out var ifRange, out var elseRange)) {
-                yield return (ifRange, step.step);
-                range = elseRange;
+                if (ifRange.IsValid()) {
+                    yield return (ifRange, step.step);
+                }
+
+                if (elseRange.IsValid()) {
+                    range = elseRange;
+                } else {
+                    yield break;
+                }
             }
         }
 
@@ -207,8 +252,8 @@ static class Extensions {
     }
     internal static (PartRange, PartRange) SplitMax(this PartRange range, char property, int value) {
         return (
-            (range.min, range.max.With(property, value)),
-            (range.min.With(property, value + 1), range.max)
+            (range.min, range.max.With(property, value - 1)),
+            (range.min.With(property, value), range.max)
         );
     }
     internal static (PartRange, PartRange) SplitMin(this PartRange range, char property, int value) {
@@ -216,6 +261,18 @@ static class Extensions {
             (range.min, range.max.With(property, value)),
             (range.min.With(property, value + 1), range.max)
         );
+    }
+    internal static bool IsValid(this PartRange range) {
+        return range.min.x <= range.max.x
+            && range.min.m <= range.max.m
+            && range.min.a <= range.max.a
+            && range.min.s <= range.max.s;
+    }
+    internal static long GetCombinations(this PartRange range) {
+        return ((long)range.max.x - range.min.x + 1)
+             * ((long)range.max.m - range.min.m + 1)
+             * ((long)range.max.a - range.min.a + 1)
+             * ((long)range.max.s - range.min.s + 1);
     }
     internal static bool Execute(this char operation, int a, int b) => operation switch {
         '>' => a > b,

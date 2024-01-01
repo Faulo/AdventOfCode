@@ -16,6 +16,14 @@ public class Tests {
 
         Assert.That(sut.distinctCombinationsOfAcceptedParts, Is.EqualTo(expected));
     }
+    [TestCase("example-1.txt", 0, "(x=1,m=2091,a=2006,s=1)", "(x=4000,m=4000,a=4000,s=1350)")]
+    public void Test_Runtime_FindAccepted(string file, int index, string expectedMin, string expectedMax) {
+        var sut = new Runtime(file);
+
+        var expected = (Part.Parse(expectedMin), Part.Parse(expectedMax));
+
+        Assert.That(sut.FindAccepted().ElementAt(index), Is.EqualTo(expected));
+    }
     [TestCase("example-1.txt", 11)]
     public void Test_Runtime_WorfklowCount(string file, int expected) {
         var sut = new Runtime(file);
@@ -36,9 +44,9 @@ public class Tests {
         Assert.That(sut.name, Is.EqualTo(expected));
     }
     [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=11,m=1,a=1,s=1}", "{x=4000,m=4000,a=4000,s=4000}", "one")]
-    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=1,a=1,s=1}", "{x=10,m=20,a=4000,s=4000}", "two")]
-    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=21,a=31,s=1}", "{x=10,m=4000,a=4000,s=4000}", "R")]
-    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=21,a=1,s=1}", "{x=10,m=4000,a=30,s=4000}", "A")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=1,a=1,s=1}", "{x=10,m=19,a=4000,s=4000}", "two")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=20,a=31,s=1}", "{x=10,m=4000,a=4000,s=4000}", "R")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=20,a=1,s=1}", "{x=10,m=4000,a=30,s=4000}", "A")]
     public void Test_Workflow_GetRanges(string workflow, string expectedMin, string expectedMax, string expectedStep) {
         var range = (new Part(1, 1, 1, 1), new Part(4000, 4000, 4000, 4000));
 
@@ -50,6 +58,15 @@ public class Tests {
         );
 
         Assert.That(sut.GetRanges(range), Contains.Item(expected));
+    }
+
+    [TestCase("{x=1,m=1,a=1,s=1}", "{x=1,m=1,a=1,s=1}", 1)]
+    [TestCase("{x=1,m=1,a=1,s=1}", "{x=10,m=20,a=30,s=40}", 10 * 20 * 30 * 40)]
+    [TestCase("{x=100,m=200,a=300,s=400}", "{x=200,m=300,a=400,s=500}", 101 * 101 * 101 * 101)]
+    public void Test_PartRange_GetCombinations(string min, string max, long expected) {
+        var sut = (Part.Parse(min), Part.Parse(max));
+
+        Assert.That(sut.GetCombinations(), Is.EqualTo(expected));
     }
 
     [TestCase("{x=787,m=2655,a=1222,s=2876}", 787, 2655, 1222, 2876)]
