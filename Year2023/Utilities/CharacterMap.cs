@@ -61,5 +61,38 @@ namespace Utilities {
                 }
             }
         }
+
+        public long FloodFill(Vector2Int position, char from, char to) {
+            long sum = 0;
+
+            var queue = new HashSet<Vector2Int> {
+                position
+            };
+
+            do {
+                position = queue.First();
+                queue.Remove(position);
+
+                if (this[position] == from) {
+                    this[position] = to;
+                    sum++;
+                    foreach (var offset in offsets) {
+                        var p = position + offset;
+                        if (IsInBounds(p) && this[p] == from) {
+                            queue.Add(p);
+                        }
+                    }
+                }
+            } while (queue.Count > 0);
+
+            return sum;
+        }
+
+        static readonly Vector2Int[] offsets = [
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right,
+        ];
     }
 }

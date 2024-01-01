@@ -1,107 +1,49 @@
 ﻿using System.Globalization;
-using System.Text;
 using Utilities;
 
 namespace Day18;
 
 sealed class Runtime {
-    internal long totalDigArea => pathLength + insideArea;
-
-    long FloodFill(Vector2Int position, char character) {
-        long sum = 0;
-
-        var queue = new HashSet<Vector2Int> {
-            position
-        };
-
-        do {
-            position = queue.First();
-            queue.Remove(position);
-
-            if (map[position] == '.') {
-                map[position] = character;
-                sum++;
-                foreach (var offset in offsets) {
-                    var p = position + offset;
-                    if (map.IsInBounds(p) && map[p] == '.') {
-                        queue.Add(p);
-                    }
-                }
-            }
-        } while (queue.Count > 0);
-
-        return sum;
-    }
-    static readonly Vector2Int[] offsets = [
-        Vector2Int.up,
-        Vector2Int.down,
-        Vector2Int.left,
-        Vector2Int.right,
-    ];
+    internal readonly long totalDigArea;
 
     readonly List<Vector2Int> path = [];
-    readonly int width;
-    readonly int height;
-    readonly CharacterMap map;
-    internal readonly Vector2Int firstPositionInside;
-
-    Vector2Int GetFirstPositionInside() {
-        for (int y = 1; y < height; y++) {
-            for (int x = 1; x < width; x++) {
-                var p = new Vector2Int(x, y);
-                if (!IsOnPath(p) && IsOnPath(new(x - 1, y)) && IsOnPath(new(x, y - 1))) {
-                    return p;
-                }
-            }
-        }
-
-        throw new Exception();
-    }
-
-    internal readonly long pathLength;
-    internal readonly long insideArea;
-
-    internal bool IsOnPath(Vector2Int position) {
-        return map[position] == '#';
-    }
+    readonly long width;
+    readonly long height;
 
     internal Runtime(string file, bool useColor = false) {
         var position = Vector2Int.zero;
         path.Add(position);
         foreach (string line in new FileInput(file).ReadLines()) {
-            position += useColor
+            var offset = useColor
                 ? ParseColor(line)
                 : ParseLine(line);
+
+            position += offset;
             path.Add(position);
         }
 
         TransposeToPositive(path);
 
+        totalDigArea = 0;
+        long perimeter = 0;
+        for (int i = 0, j = path.Count - 1; i < path.Count; i++) {
+            perimeter += Math.Abs((path[i] - path[j]).manhattenDistance);
+            totalDigArea += path[i].x64 * path[j].y64;
+            totalDigArea -= path[j].x64 * path[i].y64;
+            j = i;
+        }
+
+        perimeter /= 2;
+        perimeter++;
+
+        totalDigArea /= 2;
+
+        totalDigArea = Math.Abs(totalDigArea);
+
+        totalDigArea += perimeter;
+
         width = path.Max(p => p.x) + 1;
         height = path.Max(p => p.y) + 1;
-
-        char[,] map = new char[width, height];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                map[x, y] = '.';
-            }
-        }
-
-        pathLength = 0;
-        for (int i = 1; i < path.Count; i++) {
-            var previous = path[i - 1];
-            var current = path[i];
-
-            foreach (var p in MoveBetween(previous, current)) {
-                map[p.x, p.y] = '#';
-                pathLength++;
-            }
-        }
-
-        this.map = new(map);
-
-        firstPositionInside = GetFirstPositionInside();
-        insideArea = FloodFill(firstPositionInside, 'o');
     }
 
     internal static Vector2Int ParseLine(string line) {
@@ -130,8 +72,8 @@ sealed class Runtime {
     }
 
     internal static void TransposeToPositive(IList<Vector2Int> path) {
-        int x = path.Min(p => p.x);
-        int y = path.Min(p => p.y);
+        long x = path.Min(p => p.x64);
+        long y = path.Min(p => p.y64);
 
         x = x < 0
             ? Math.Abs(x)
@@ -147,10 +89,10 @@ sealed class Runtime {
         }
     }
 
-    internal static int ScaleToSmallest(IList<Vector2Int> path) {
-        int scale = Math.Min(
-            path.Where(p => p.x > 0).Min(p => p.x),
-            path.Where(p => p.y > 0).Min(p => p.y)
+    internal static long ScaleToSmallest(IList<Vector2Int> path) {
+        long scale = Math.Min(
+            path.Where(p => p.x64 > 0).Min(p => p.x64),
+            path.Where(p => p.y64 > 0).Min(p => p.y64)
         );
 
         while (scale > 1) {
@@ -181,32 +123,17 @@ sealed class Runtime {
             int direction = goal.y - start.y > 0
                 ? 1
                 : -1;
-            for (int y = start.y; y != goal.y; y += direction) {
+            for (long y = start.y; y != goal.y; y += direction) {
                 yield return new(start.x, y);
             }
         } else {
             int direction = goal.x - start.x > 0
                 ? 1
                 : -1;
-            for (int x = start.x; x != goal.x; x += direction) {
+            for (long x = start.x; x != goal.x; x += direction) {
                 yield return new(x, start.y);
             }
         }
-    }
-
-    public override string ToString() {
-        var builder = new StringBuilder();
-        for (int y = 0; y < height; y++) {
-            if (y > 0) {
-                builder.AppendLine();
-            }
-
-            for (int x = 0; x < width; x++) {
-                builder.Append(map[x, y]);
-            }
-        }
-
-        return builder.ToString();
     }
 }
 
