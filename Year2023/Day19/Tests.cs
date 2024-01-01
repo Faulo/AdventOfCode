@@ -35,6 +35,22 @@ public class Tests {
 
         Assert.That(sut.name, Is.EqualTo(expected));
     }
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=11,m=1,a=1,s=1}", "{x=4000,m=4000,a=4000,s=4000}", "one")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=1,a=1,s=1}", "{x=10,m=20,a=4000,s=4000}", "two")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=21,a=31,s=1}", "{x=10,m=4000,a=4000,s=4000}", "R")]
+    [TestCase("ex{x>10:one,m<20:two,a>30:R,A}", "{x=1,m=21,a=1,s=1}", "{x=10,m=4000,a=30,s=4000}", "A")]
+    public void Test_Workflow_GetRanges(string workflow, string expectedMin, string expectedMax, string expectedStep) {
+        var range = (new Part(1, 1, 1, 1), new Part(4000, 4000, 4000, 4000));
+
+        var sut = Workflow.Parse(workflow);
+
+        var expected = (
+            (Part.Parse(expectedMin), Part.Parse(expectedMax)),
+            expectedStep
+        );
+
+        Assert.That(sut.GetRanges(range), Contains.Item(expected));
+    }
 
     [TestCase("{x=787,m=2655,a=1222,s=2876}", 787, 2655, 1222, 2876)]
     [TestCase("{x=1679,m=44,a=2067,s=496}", 1679, 44, 2067, 496)]

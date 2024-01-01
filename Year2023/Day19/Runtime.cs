@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
+using PartRange = (Day19.Part min, Day19.Part max);
 using Step = (char property, char operation, int value, string step);
 
 namespace Day19;
@@ -91,6 +92,17 @@ readonly struct Workflow {
         return new(name, steps, values[^1]);
     }
 
+    internal IEnumerable<(PartRange range, string step)> GetRanges(PartRange range) {
+        foreach (var step in steps) {
+            if (step.TrySplitRange(range, out var ifRange, out var elseRange)) {
+                yield return (ifRange, step.step);
+                range = elseRange;
+            }
+        }
+
+        yield return (range, fallback);
+    }
+
     internal string Process(Part part) {
         for (int i = 0; i < steps.Length; i++) {
             int value = part[steps[i].property];
@@ -131,9 +143,80 @@ readonly struct Part(int x, int m, int a, int s) {
 
         return new(values[0], values[1], values[2], values[3]);
     }
+
+    internal Part With(char property, int value) {
+        var (x, m, a, s) = (this.x, this.m, this.a, this.s);
+
+        switch (property) {
+            case 'x':
+                x = value;
+                break;
+            case 'm':
+                m = value;
+                break;
+            case 'a':
+                a = value;
+                break;
+            case 's':
+                s = value;
+                break;
+        };
+
+        return new(x, m, a, s);
+    }
+
+    public override string ToString() => $"x={x},m={m},a={a},s={s}";
+
+    public override bool Equals(object? obj) {
+        return obj is Part other
+            && other.x == x
+            && other.m == m
+            && other.a == a
+            && other.s == s;
+    }
+
+    public override int GetHashCode() {
+        return (x << 24) | (m << 16) | (a << 8) | s;
+    }
 }
 
 static class Extensions {
+    internal static bool TrySplitRange(this Step step, PartRange range, out PartRange ifRange, out PartRange elseRange) {
+        switch (step.operation) {
+            case '<':
+                if (range.min[step.property] >= step.value || range.max[step.property] < step.value) {
+                    ifRange = default;
+                    elseRange = default;
+                    return false;
+                }
+
+                (ifRange, elseRange) = range.SplitMax(step.property, step.value);
+                return true;
+            case '>':
+                if (range.min[step.property] > step.value || range.max[step.property] <= step.value) {
+                    ifRange = default;
+                    elseRange = default;
+                    return false;
+                }
+
+                (elseRange, ifRange) = range.SplitMin(step.property, step.value);
+                return true;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+    internal static (PartRange, PartRange) SplitMax(this PartRange range, char property, int value) {
+        return (
+            (range.min, range.max.With(property, value)),
+            (range.min.With(property, value + 1), range.max)
+        );
+    }
+    internal static (PartRange, PartRange) SplitMin(this PartRange range, char property, int value) {
+        return (
+            (range.min, range.max.With(property, value)),
+            (range.min.With(property, value + 1), range.max)
+        );
+    }
     internal static bool Execute(this char operation, int a, int b) => operation switch {
         '>' => a > b,
         '<' => a < b,
