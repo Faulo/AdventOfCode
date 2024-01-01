@@ -19,6 +19,8 @@ sealed class Runtime {
         }
     }
 
+    internal long distinctCombinationsOfAcceptedParts => 0;
+
     internal readonly Dictionary<string, Workflow> workflows = [];
     internal readonly List<Part> parts = [];
 

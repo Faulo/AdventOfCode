@@ -10,6 +10,12 @@ public class Tests {
 
         Assert.That(sut.sumOfAcceptedParts, Is.EqualTo(expected));
     }
+    [TestCase("example-1.txt", 167409079868000)]
+    public void Test_Runtime_DistinctCombinationsOfAcceptedParts(string file, long expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.distinctCombinationsOfAcceptedParts, Is.EqualTo(expected));
+    }
     [TestCase("example-1.txt", 11)]
     public void Test_Runtime_WorfklowCount(string file, int expected) {
         var sut = new Runtime(file);
