@@ -22,6 +22,13 @@ public class Tests {
         Assert.That(sut.pulseCounts, Is.EqualTo(expected));
     }
 
+    [TestCase("input.txt", 63237724691)]
+    public void Test_Runtime_LowestButtonCount(string file, long expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.lowestButtonCount, Is.GreaterThan(expected));
+    }
+
     [TestCase("example-1.txt", 6)]
     [TestCase("example-2.txt", 6)]
     public void Test_Runtime_Module_Count(string file, long expected) {
@@ -58,8 +65,8 @@ public class Tests {
         var pulse = isHigh.CreatePulse(broadcaster, sut);
 
         var expected = new[] {
-            (sut.name, "a", isHigh),
-            (sut.name, "b", isHigh),
+            isHigh.CreatePulse(sut.name, "a"),
+            isHigh.CreatePulse(sut.name, "b"),
         };
 
         Assert.That(sut.SendPulse(pulse), Is.EqualTo(expected));
@@ -77,8 +84,8 @@ public class Tests {
 
         var expected = expectOutput
             ? new[] {
-                (sut.name, "a", expectedPulse),
-                (sut.name, "b", expectedPulse),
+                expectedPulse.CreatePulse(sut.name, "a"),
+                expectedPulse.CreatePulse(sut.name, "b"),
             }
             : Array.Empty<(string, string, bool)>();
 
@@ -110,8 +117,8 @@ public class Tests {
         sut.LinkModules(new Dictionary<string, Module> { [broadcaster.name] = broadcaster });
 
         var expected = new[] {
-            (sut.name, "a", expectedPulse),
-            (sut.name, "b", expectedPulse),
+            expectedPulse.CreatePulse(sut.name, "a"),
+            expectedPulse.CreatePulse(sut.name, "b"),
         };
 
         var pulse = isHigh.CreatePulse(broadcaster, sut);
@@ -129,12 +136,12 @@ public class Tests {
         sut.LinkModules(new Dictionary<string, Module> { [a.name] = a, [b.name] = b });
 
         var expectedA = new[] {
-            (sut.name, "a", true),
-            (sut.name, "b", true),
+            true.CreatePulse(sut.name, "a"),
+            true.CreatePulse(sut.name, "b"),
         };
         var expectedB = new[] {
-            (sut.name, "a", expectedPulse),
-            (sut.name, "b", expectedPulse),
+            expectedPulse.CreatePulse(sut.name, "a"),
+            expectedPulse.CreatePulse(sut.name, "b"),
         };
 
         var pulseA = aHigh.CreatePulse(a, sut);

@@ -44,6 +44,46 @@ sealed class Runtime {
         }
     }
 
+    internal long lowestButtonCount {
+        get {
+            long mp = GetLowestButtonCountFor(true.CreatePulse("mp", "dr"));
+            long qt = GetLowestButtonCountFor(true.CreatePulse("qt", "dr"));
+            long qb = GetLowestButtonCountFor(true.CreatePulse("qb", "dr"));
+            long ng = GetLowestButtonCountFor(true.CreatePulse("ng", "dr"));
+
+            return mp * qt * qb * ng;
+        }
+    }
+
+    internal int GetLowestButtonCountFor(Pulse target) {
+        int count = 0;
+        var queue = new Queue<Pulse>();
+        foreach (var module in modules.Values) {
+            module.Reset();
+        }
+
+        while (count < short.MaxValue) {
+            count++;
+            queue.Enqueue(("button", "broadcaster", false));
+
+            do {
+                var pulse = queue.Dequeue();
+
+                if (modules.TryGetValue(pulse.target, out var module)) {
+                    foreach (var output in module.SendPulse(pulse)) {
+                        if (output == target) {
+                            return count;
+                        }
+
+                        queue.Enqueue(output);
+                    }
+                }
+            } while (queue.Count > 0);
+        }
+
+        throw new Exception();
+    }
+
     internal readonly Dictionary<string, Module> modules = [];
 
     internal Runtime(string file) {
@@ -93,6 +133,9 @@ class Module {
             _ => new Module(name, outputs)
         };
     }
+
+    internal virtual void Reset() {
+    }
 }
 
 class FlipFlopModule : Module {
@@ -100,6 +143,10 @@ class FlipFlopModule : Module {
     }
 
     internal bool isOn;
+
+    internal override void Reset() {
+        isOn = false;
+    }
 
     internal override IEnumerable<Pulse> SendPulse(Pulse pulse) {
         if (pulse.isHigh) {
@@ -127,6 +174,12 @@ class ConjunctionModule : Module {
         }
     }
 
+    internal override void Reset() {
+        foreach (string? i in inputs.Keys.ToList()) {
+            inputs[i] = false;
+        }
+    }
+
     internal override IEnumerable<Pulse> SendPulse(Pulse pulse) {
         Assert.That(inputs, Contains.Key(pulse.source));
         inputs[pulse.source] = pulse.isHigh;
@@ -138,7 +191,10 @@ class ConjunctionModule : Module {
 }
 
 static class Extensions {
+    internal static Pulse CreatePulse(this bool isHigh, string source, string target) {
+        return (source, target, isHigh);
+    }
     internal static Pulse CreatePulse(this bool isHigh, Module source, Module target) {
-        return (source.name, target.name, isHigh);
+        return isHigh.CreatePulse(source.name, target.name);
     }
 }
