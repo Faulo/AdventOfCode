@@ -26,6 +26,11 @@ namespace Utilities {
                 map[x, y] = value;
             }
         }
+
+        public char GetXYWrapped(Vector2Int position) {
+            return this[((position.x % width) + width) % width, ((position.y % height) + height) % height];
+        }
+
         public readonly int width = map.GetLength(0);
         public readonly int height = map.GetLength(1);
 

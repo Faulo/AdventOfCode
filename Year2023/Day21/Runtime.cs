@@ -21,7 +21,7 @@ sealed class Runtime {
             var newPositions = new HashSet<Vector2Int>();
             foreach (var position in positions) {
                 foreach (var neighbor in position.neighbors) {
-                    if (map.IsInBounds(neighbor) && map[neighbor].IsFree()) {
+                    if (map.GetXYWrapped(neighbor).IsFree()) {
                         newPositions.Add(neighbor);
                     }
                 }
