@@ -58,6 +58,8 @@ sealed class Runtime {
                 .Count();
         }
 
+        // credit to https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21
+
         var corners = visited
             .Where(path => path.Value > extends);
 
