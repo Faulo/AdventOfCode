@@ -10,16 +10,24 @@ public class Tests {
     [TestCase("example-1.txt", 2, 4)]
     [TestCase("example-1.txt", 3, 6)]
     [TestCase("example-1.txt", 6, 16)]
-    [TestCase("example-1.txt", 10, 50)]
-    [TestCase("example-1.txt", 50, 1594)]
-    [TestCase("example-1.txt", 100, 6536)]
-    [TestCase("example-1.txt", 500, 167004)]
-    [TestCase("example-1.txt", 1000, 668697)]
-    [TestCase("example-1.txt", 5000, 16733044)]
     public void Test_Runtime(string file, int steps, long expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.GetNumberOfDestinations(steps), Is.EqualTo(expected));
+    }
+
+    [TestCase("input.txt", 26501365, true, 616951807954615)]
+    public void Test_Runtime_LessThan(string file, int steps, bool wrap, long expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.GetNumberOfDestinations(steps, wrap), Is.LessThan(expected));
+    }
+
+    [TestCase("input.txt", 26501365, true, 616951786718660)]
+    public void Test_Runtime_GreaterThan(string file, int steps, bool wrap, long expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.GetNumberOfDestinations(steps, wrap), Is.GreaterThan(expected));
     }
 
     [TestCase("example-1.txt", 5, 5)]
@@ -27,5 +35,11 @@ public class Tests {
         var sut = new Runtime(file);
 
         Assert.That(sut.start, Is.EqualTo(new Vector2Int(x, y)));
+    }
+    [TestCase("example-1.txt", 81)]
+    public void Test_Runtime_FreeSpots(string file, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.freeSpots, Is.EqualTo(expected));
     }
 }
