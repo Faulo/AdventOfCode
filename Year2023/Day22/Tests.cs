@@ -6,17 +6,31 @@ namespace Day22;
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
     [TestCase("example-1.txt", 5)]
-    public void Test_Runtime(string file, int expected) {
+    public void Test_Runtime_NumberOfSuperfluousBricks(string file, int expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.numberOfSuperfluousBricks, Is.EqualTo(expected));
     }
 
     [TestCase("input.txt", 674)]
-    public void Test_Runtime_LessThan(string file, int expected) {
+    public void Test_Runtime_NumberOfSuperfluousBricks_LessThan(string file, int expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.numberOfSuperfluousBricks, Is.LessThan(expected));
+    }
+
+    [TestCase("example-1.txt", 7)]
+    public void Test_Runtime_SumOfFallingBricks2(string file, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.sumOfFallingBricks, Is.EqualTo(expected));
+    }
+
+    [TestCase("input.txt", 74448)]
+    public void Test_Runtime_SumOfFallingBricks_LessThan(string file, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.sumOfFallingBricks, Is.LessThan(expected));
     }
 
     [TestCase("example-1.txt", 7)]
@@ -46,10 +60,19 @@ public class Tests {
     [TestCase("example-1.txt", 4, true)]
     [TestCase("example-1.txt", 5, false)]
     [TestCase("example-1.txt", 6, true)]
-    public void Test_Runtime_Bricks_IsSuperfluous(string file, int brick, bool expected) {
+    public void Test_Runtime_IsSuperfluous(string file, int brick, bool expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.IsSuperfluous(sut.bricks[brick]), Is.EqualTo(expected));
+    }
+
+    [TestCase("example-1.txt", 0, 6)]
+    [TestCase("example-1.txt", 1, 0)]
+    [TestCase("example-1.txt", 5, 1)]
+    public void Test_Runtime_GetFallingBricksCount(string file, int brick, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.GetFallingBricksCount(sut.bricks[brick]), Is.EqualTo(expected));
     }
 
     [TestCase("example-1.txt", 0, "1,2")]

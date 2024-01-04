@@ -5,7 +5,36 @@ namespace Day22;
 sealed class Runtime {
     internal int numberOfSuperfluousBricks => bricks.Count(IsSuperfluous);
 
+    internal int sumOfFallingBricks => bricks.Sum(GetFallingBricksCount);
+
+    internal int GetFallingBricksCount(Brick brick) {
+        return IsSuperfluous(brick)
+            ? 0
+            : GetBricksAboveCount(brick);
+    }
+
+    int GetBricksAboveCount(Brick brick) {
+        var above = new HashSet<Brick> {
+            brick
+        };
+
+        bool hasAdded;
+        do {
+            hasAdded = false;
+            foreach (var current in bricks) {
+                if (!above.Contains(current) && bricksBelow[current].All(above.Contains)) {
+                    above.Add(current);
+                    hasAdded = true;
+                }
+            }
+        } while (hasAdded);
+
+        return above.Count - 1;
+    }
+
     internal readonly List<Brick> bricks = [];
+    internal readonly Dictionary<Brick, ISet<Brick>> bricksAbove = [];
+    internal readonly Dictionary<Brick, ISet<Brick>> bricksBelow = [];
 
     internal readonly int width;
     internal readonly int depth;
@@ -50,14 +79,20 @@ sealed class Runtime {
 
                 if (validOffset != 0) {
                     MoveBrick(brick, new(0, 0, validOffset));
+                    hasMoved = true;
                 }
             }
         } while (hasMoved);
+
+        foreach (var brick in bricks) {
+            bricksAbove[brick] = GetNeighbors(brick, Vector3Int.up);
+            bricksBelow[brick] = GetNeighbors(brick, Vector3Int.down);
+        }
     }
 
     internal bool IsSuperfluous(Brick brick) {
-        return GetNeighbors(brick, Vector3Int.up)
-            .All(neighbor => GetNeighbors(neighbor, Vector3Int.down).Count > 1);
+        return bricksAbove[brick]
+            .All(neighbor => bricksBelow[neighbor].Count > 1);
     }
 
     internal ISet<Brick> GetNeighbors(Brick brick, Vector3Int offset) {
