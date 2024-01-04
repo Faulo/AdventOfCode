@@ -12,6 +12,13 @@ public class Tests {
         Assert.That(sut.numberOfSuperfluousBricks, Is.EqualTo(expected));
     }
 
+    [TestCase("input.txt", 674)]
+    public void Test_Runtime_LessThan(string file, int expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.numberOfSuperfluousBricks, Is.LessThan(expected));
+    }
+
     [TestCase("example-1.txt", 7)]
     public void Test_Runtime_Bricks_Count(string file, int expected) {
         var sut = new Runtime(file);
@@ -30,6 +37,34 @@ public class Tests {
         var sut = new Runtime(file);
 
         Assert.That(sut.bricks[brick].from.z, Is.EqualTo(expected));
+    }
+
+    [TestCase("example-1.txt", 0, false)]
+    [TestCase("example-1.txt", 1, true)]
+    [TestCase("example-1.txt", 2, true)]
+    [TestCase("example-1.txt", 3, true)]
+    [TestCase("example-1.txt", 4, true)]
+    [TestCase("example-1.txt", 5, false)]
+    [TestCase("example-1.txt", 6, true)]
+    public void Test_Runtime_Bricks_IsSuperfluous(string file, int brick, bool expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.IsSuperfluous(sut.bricks[brick]), Is.EqualTo(expected));
+    }
+
+    [TestCase("example-1.txt", 0, "1,2")]
+    [TestCase("example-1.txt", 1, "3,4")]
+    [TestCase("example-1.txt", 2, "3,4")]
+    [TestCase("example-1.txt", 3, "5")]
+    [TestCase("example-1.txt", 4, "5")]
+    [TestCase("example-1.txt", 5, "6")]
+    [TestCase("example-1.txt", 6, "")]
+    public void Test_Runtime_Bricks_GetAbove(string file, int brick, string expectedBricks) {
+        var sut = new Runtime(file);
+
+        var actual = sut.GetNeighbors(sut.bricks[brick], Vector3Int.up);
+
+        Assert.That(string.Join(',', actual.Select(b => sut.bricks.IndexOf(b))), Is.EqualTo(expectedBricks));
     }
 
     [TestCase("1,0,1~1,2,1", 1, 0, 1, 1, 2, 1)]

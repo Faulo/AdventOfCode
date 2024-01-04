@@ -3,7 +3,7 @@
 namespace Day22;
 
 sealed class Runtime {
-    internal int numberOfSuperfluousBricks => 0;
+    internal int numberOfSuperfluousBricks => bricks.Count(IsSuperfluous);
 
     internal readonly List<Brick> bricks = [];
 
@@ -53,6 +53,22 @@ sealed class Runtime {
                 }
             }
         } while (hasMoved);
+    }
+
+    internal bool IsSuperfluous(Brick brick) {
+        return GetNeighbors(brick, Vector3Int.up)
+            .All(neighbor => GetNeighbors(neighbor, Vector3Int.down).Count > 1);
+    }
+
+    internal ISet<Brick> GetNeighbors(Brick brick, Vector3Int offset) {
+        var result = new HashSet<Brick>();
+        foreach (var position in brick.positions) {
+            if (map[position.x + offset.x, position.y + offset.y, position.z + offset.z] is Brick neighbor && neighbor != brick) {
+                result.Add(neighbor);
+            }
+        }
+
+        return result;
     }
 
     void PlaceBrick(Brick brick) {
@@ -110,6 +126,8 @@ class Brick {
             to = new(positions[3], positions[4], positions[5]),
         };
     }
+
+    public override string ToString() => $"{from} ~ {to}";
 }
 
 static class Extensions {
