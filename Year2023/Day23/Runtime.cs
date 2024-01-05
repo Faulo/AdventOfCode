@@ -5,36 +5,58 @@ namespace Day23;
 sealed class Runtime {
     internal int maximumNumberOfSteps {
         get {
+            var positions = new Dictionary<Vector2Int, int>();
+            int i = 0;
+            foreach (var (position, _) in map.allPositionsAndCharactersWithin.Where(tile => tile.character.IsFree())) {
+                positions[position] = i++;
+            }
+
+            Node.positionIdSize = i;
+
+            int goalId = positions[goal];
+
             var neighbors = map
                 .allPositionsAndCharactersWithin
+                .Where(tile => positions.ContainsKey(tile.position))
                 .ToDictionary(
-                    tile => tile.position,
+                    tile => positions[tile.position],
                     tile => tile.character
                         .GetNeighbors()
                         .Select(offset => offset + tile.position)
                         .Where(map.IsInBounds)
                         .Where(p => map[p].IsFree())
+                        .Select(p => positions[p])
                         .ToArray()
                 );
 
+            var processedPaths = new HashSet<string>();
+
             int count = 0;
 
-            var queue = new Queue<Node>();
-            queue.Enqueue(new Node(start));
+            var queue = new Stack<Node>();
+            queue.Push(new Node(positions[start]));
 
-            while (queue.TryDequeue(out var node)) {
-                foreach (var neighbor in neighbors[node.position]) {
-                    if (!node.IsAncestorOrSelf(neighbor)) {
-                        if (neighbor == goal) {
+            while (queue.TryPop(out var node)) {
+                if (!processedPaths.Add(node.hash)) {
+                    continue;
+                }
+
+                foreach (int neighborId in neighbors[node.positionId]) {
+                    if (!node.IsAncestorOrSelf(neighborId)) {
+                        if (neighborId == goalId) {
                             count = Math.Max(count, node.ancestorCount);
+                            Console.WriteLine(count);
                         } else {
-                            queue.Enqueue(new Node(neighbor, node));
+                            var child = new Node(neighborId, node);
+                            if (!processedPaths.Contains(child.hash)) {
+                                queue.Push(child);
+                            }
                         }
                     }
                 }
             }
 
-            return count + 1;
+            return count;
         }
     }
 
@@ -66,27 +88,52 @@ sealed class Runtime {
 }
 
 sealed class Node {
-    internal readonly Vector2Int position;
+    internal static int positionIdSize;
+
     readonly Node? parent;
-    internal int ancestorCount {
-        get {
-            int i = 0;
-            for (var node = parent; node is not null; node = node.parent) {
-                i++;
+
+    internal readonly int positionId;
+    internal readonly char[] hashes;
+    internal readonly string hash;
+
+    internal int ancestorCount;
+
+    internal Node(int positionId, Node? parent = null) {
+        this.positionId = positionId;
+        this.parent = parent;
+
+        ancestorCount = 1;
+
+        hashes = new char[positionIdSize];
+
+        if (parent is not null) {
+            ancestorCount += parent.ancestorCount;
+            Array.Copy(parent.hashes, hashes, positionIdSize);
+        }
+
+        hashes[positionId] = '.';
+        hash = new(hashes);
+    }
+
+    public override int GetHashCode() => ancestorCount;
+
+    public override bool Equals(object? obj) {
+        if (obj is Node node) {
+            for (int i = 0; i < positionIdSize; i++) {
+                if (hashes[i] != node.hashes[i]) {
+                    return false;
+                }
             }
 
-            return i;
+            return true;
         }
+
+        return false;
     }
 
-    internal Node(Vector2Int position, Node? parent = null) {
-        this.position = position;
-        this.parent = parent;
-    }
-
-    internal bool IsAncestorOrSelf(Vector2Int position) {
+    internal bool IsAncestorOrSelf(int positionId) {
         for (var node = this; node is not null; node = node.parent) {
-            if (node.position == position) {
+            if (node.positionId == positionId) {
                 return true;
             }
         }
