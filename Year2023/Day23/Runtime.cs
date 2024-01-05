@@ -38,10 +38,6 @@ sealed class Runtime {
             queue.Enqueue(new Node(positions[start]));
 
             while (queue.TryDequeue(out var node)) {
-                if (!processedPaths.Add(node)) {
-                    continue;
-                }
-
                 foreach (int neighborId in neighbors[node.positionId]) {
                     if (!node.IsAncestorOrSelf(neighborId)) {
                         if (neighborId == goalId) {
