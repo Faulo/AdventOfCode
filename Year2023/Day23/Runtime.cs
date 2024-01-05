@@ -33,11 +33,14 @@ sealed class Runtime {
 
             int count = 0;
 
-            var queue = new Queue<Node>();
-            //queue.Push(new Node(positions[start]));
-            queue.Enqueue(new Node(positions[start]));
+            var queue = new Stack<Node>();
+            queue.Push(new Node(positions[start]));
+            //queue.Enqueue(new Node(positions[start]));
 
-            while (queue.TryDequeue(out var node)) {
+            int[] newNeighbors = new int[4];
+            int newNeighborSize = 0;
+            while (queue.TryPop(out var node)) {
+                var next = new List<int>();
                 foreach (int neighborId in neighbors[node.positionId]) {
                     if (!node.IsAncestorOrSelf(neighborId)) {
                         if (neighborId == goalId) {
@@ -46,10 +49,17 @@ sealed class Runtime {
                                 Console.WriteLine(count);
                             }
                         } else {
-                            var child = new Node(neighborId, node);
-                            queue.Enqueue(child);
+                            newNeighbors[newNeighborSize++] = neighborId;
                         }
                     }
+                }
+
+                while (newNeighborSize > 0) {
+                    int neighborId = newNeighbors[--newNeighborSize];
+                    var child = newNeighborSize == 0
+                        ? node.BecomeChild(neighborId)
+                        : node.CreateChild(neighborId);
+                    queue.Push(child);
                 }
             }
 
@@ -87,9 +97,9 @@ sealed class Runtime {
 sealed class Node {
     internal static int positionIdSize;
 
-    internal readonly int positionId;
-    internal readonly int ancestorCount;
-    internal readonly bool[] path;
+    internal int positionId;
+    internal int ancestorCount;
+    internal bool[] path;
 
     internal Node(int positionId, Node? parent = null) {
         this.positionId = positionId;
@@ -105,6 +115,17 @@ sealed class Node {
         }
 
         path[positionId] = true;
+    }
+
+    internal Node BecomeChild(int positionId) {
+        this.positionId = positionId;
+        ancestorCount++;
+        path[positionId] = true;
+        return this;
+    }
+
+    internal Node CreateChild(int positionId) {
+        return new Node(positionId, this);
     }
 
     public override int GetHashCode() => ancestorCount;
