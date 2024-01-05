@@ -50,11 +50,11 @@ public class Tests {
 
         foreach (var a in paths) {
             foreach (var b in paths) {
-                Assert.That(a.hashes, Is.EqualTo(b.hashes));
+                Assert.That(a.path, Is.EqualTo(b.path));
             }
 
             foreach (var b in notPaths) {
-                Assert.That(a.hashes, Is.Not.EqualTo(b.hashes));
+                Assert.That(a.path, Is.Not.EqualTo(b.path));
             }
         }
     }

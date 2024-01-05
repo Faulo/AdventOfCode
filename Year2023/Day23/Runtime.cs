@@ -29,28 +29,29 @@ sealed class Runtime {
                         .ToArray()
                 );
 
-            var processedPaths = new HashSet<string>();
+            var processedPaths = new HashSet<Node>();
 
             int count = 0;
 
-            var queue = new Stack<Node>();
-            queue.Push(new Node(positions[start]));
+            var queue = new Queue<Node>();
+            //queue.Push(new Node(positions[start]));
+            queue.Enqueue(new Node(positions[start]));
 
-            while (queue.TryPop(out var node)) {
-                if (!processedPaths.Add(node.hash)) {
+            while (queue.TryDequeue(out var node)) {
+                if (!processedPaths.Add(node)) {
                     continue;
                 }
 
                 foreach (int neighborId in neighbors[node.positionId]) {
                     if (!node.IsAncestorOrSelf(neighborId)) {
                         if (neighborId == goalId) {
-                            count = Math.Max(count, node.ancestorCount);
-                            Console.WriteLine(count);
+                            if (count < node.ancestorCount) {
+                                count = node.ancestorCount;
+                                Console.WriteLine(count);
+                            }
                         } else {
                             var child = new Node(neighborId, node);
-                            if (!processedPaths.Contains(child.hash)) {
-                                queue.Push(child);
-                            }
+                            queue.Enqueue(child);
                         }
                     }
                 }
@@ -90,55 +91,34 @@ sealed class Runtime {
 sealed class Node {
     internal static int positionIdSize;
 
-    readonly Node? parent;
-
     internal readonly int positionId;
-    internal readonly char[] hashes;
-    internal readonly string hash;
-
-    internal int ancestorCount;
+    internal readonly int ancestorCount;
+    internal readonly bool[] path;
 
     internal Node(int positionId, Node? parent = null) {
         this.positionId = positionId;
-        this.parent = parent;
 
         ancestorCount = 1;
-
-        hashes = new char[positionIdSize];
-
         if (parent is not null) {
             ancestorCount += parent.ancestorCount;
-            Array.Copy(parent.hashes, hashes, positionIdSize);
         }
 
-        hashes[positionId] = '.';
-        hash = new(hashes);
+        path = new bool[positionIdSize];
+        if (parent is not null) {
+            Array.Copy(parent.path, path, positionIdSize);
+        }
+
+        path[positionId] = true;
     }
 
     public override int GetHashCode() => ancestorCount;
 
     public override bool Equals(object? obj) {
-        if (obj is Node node) {
-            for (int i = 0; i < positionIdSize; i++) {
-                if (hashes[i] != node.hashes[i]) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
+        return obj is Node node && path.AsSpan().SequenceEqual(node.path);
     }
 
     internal bool IsAncestorOrSelf(int positionId) {
-        for (var node = this; node is not null; node = node.parent) {
-            if (node.positionId == positionId) {
-                return true;
-            }
-        }
-
-        return false;
+        return path[positionId];
     }
 }
 
