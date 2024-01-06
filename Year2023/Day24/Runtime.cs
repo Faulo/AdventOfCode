@@ -4,7 +4,65 @@ using Utilities;
 namespace Day24;
 
 sealed class Runtime {
-    internal static bool TryCalculateIntersection(Hailstone h1, Hailstone h2, out (long x, long y) position) {
+    /// <summary>
+    /// <seealso href="https://github.com/jmd-dk/advent-of-code/blob/main/2023/solution/24/solve.py"/>
+    /// </summary>
+    /// <param name="h1"></param>
+    /// <param name="h2"></param>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    internal static bool TryCalculateIntersection(Hailstone h1, Hailstone h2, out (double x, double y) position) {
+        long dx = h1.position.x - h2.position.x;
+        long dy = h1.position.y - h2.position.y;
+
+        long denominator = (h1.velocity.y * h2.velocity.x) - (h1.velocity.x * h2.velocity.y);
+        if (denominator == 0) {
+            position = default;
+            return false;
+        }
+        long numerator1 = (h2.velocity.y * dx) - (h2.velocity.x * dy);
+        double t1 = (double)numerator1 / denominator;
+        if (t1 <= 0) {
+            position = default;
+            return false;
+        }
+
+        long numerator2 = (h1.velocity.y * dx) - (h1.velocity.x * dy);
+        double t2 = (double)numerator2 / denominator;
+        if (t2 <= 0) {
+            position = default;
+            return false;
+        }
+
+        double x = h1.position.x + (t1 * h1.velocity.x);
+        double y = h1.position.y + (t1 * h1.velocity.y);
+
+        position = (x, y);
+
+        var delta1 = position;
+        delta1.x -= h1.position.x;
+        delta1.y -= h1.position.y;
+
+        var delta2 = position;
+        delta2.x -= h2.position.x;
+        delta2.y -= h2.position.y;
+
+        // Console.WriteLine($"{Math.Sign(h1.velocity.x) == Math.Sign(delta1.x)} && {Math.Sign(h1.velocity.y) == Math.Sign(delta1.y)} && {Math.Sign(h2.velocity.x) == Math.Sign(delta2.x)} && {Math.Sign(h2.velocity.y) == Math.Sign(delta2.y)}");
+
+        return Math.Sign(h1.velocity.x) == Math.Sign(delta1.x)
+            && Math.Sign(h1.velocity.y) == Math.Sign(delta1.y)
+            && Math.Sign(h2.velocity.x) == Math.Sign(delta2.x)
+            && Math.Sign(h2.velocity.y) == Math.Sign(delta2.y);
+    }
+
+    /// <summary>
+    /// <seealso href="https://stackoverflow.com/questions/4543506/algorithm-for-intersection-of-2-lines"/>
+    /// </summary>
+    /// <param name="h1"></param>
+    /// <param name="h2"></param>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    internal static bool TryCalculateIntersectionWrong(Hailstone h1, Hailstone h2, out (long x, long y) position) {
         long determinant = (h1.line.x * h2.line.y) - (h2.line.x * h1.line.y);
 
         if (determinant == 0) {
