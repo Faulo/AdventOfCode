@@ -92,6 +92,8 @@ sealed class Runtime {
 
     internal readonly List<Hailstone> hailstones = [];
 
+    internal long sumOfStonePosition => 0;
+
     internal int GetNumberOfCollisions(long min, long max) {
         int count = 0;
         for (int i = 0; i < hailstones.Count; i++) {
