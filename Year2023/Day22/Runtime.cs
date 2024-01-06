@@ -36,9 +36,9 @@ sealed class Runtime {
     internal readonly Dictionary<Brick, ISet<Brick>> bricksAbove = [];
     internal readonly Dictionary<Brick, ISet<Brick>> bricksBelow = [];
 
-    internal readonly int width;
-    internal readonly int depth;
-    internal readonly int height;
+    internal readonly long width;
+    internal readonly long depth;
+    internal readonly long height;
 
     readonly Brick?[,,] map;
     readonly Brick floor;
@@ -68,8 +68,8 @@ sealed class Runtime {
         do {
             hasMoved = false;
             foreach (var brick in bricks) {
-                int validOffset = 0;
-                for (int z = brick.from.z - 1; z > 0; z--) {
+                long validOffset = 0;
+                for (long z = brick.from.z - 1; z > 0; z--) {
                     if (IsFree(brick.positions.Select(p => p.WithZ(z)))) {
                         validOffset = z - brick.from.z;
                     } else {
@@ -139,9 +139,9 @@ class Brick {
 
     internal IEnumerable<Vector3Int> positions {
         get {
-            for (int x = from.x; x <= to.x; x++) {
-                for (int y = from.y; y <= to.y; y++) {
-                    for (int z = from.z; z <= to.z; z++) {
+            for (long x = from.x; x <= to.x; x++) {
+                for (long y = from.y; y <= to.y; y++) {
+                    for (long z = from.z; z <= to.z; z++) {
                         yield return new(x, y, z);
                     }
                 }

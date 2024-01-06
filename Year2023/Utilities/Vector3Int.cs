@@ -1,5 +1,5 @@
 ﻿namespace Utilities {
-    public struct Vector3Int {
+    public struct Vector3Int(long x, long y, long z) {
         /// <summary>
         /// (0, 0, 0)
         /// </summary>
@@ -15,15 +15,9 @@
         /// </summary>
         public static readonly Vector3Int down = new(0, 0, -1);
 
-        public int x;
-        public int y;
-        public int z;
-
-        public Vector3Int(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+        public long x = x;
+        public long y = y;
+        public long z = z;
 
         public static Vector3Int operator +(Vector3Int a, Vector3Int b) => new(a.x + b.x, a.y + b.y, a.z + b.z);
         public static Vector3Int operator -(Vector3Int a, Vector3Int b) => new(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -31,18 +25,18 @@
         public static bool operator ==(Vector3Int a, Vector3Int b) => a.x == b.x && a.y == b.y && a.z == b.z;
         public static bool operator !=(Vector3Int a, Vector3Int b) => a.x != b.x || a.y != b.y || a.z != b.z;
 
-        public override bool Equals(object? obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Vector3Int other && other == this;
         }
 
-        public override int GetHashCode() {
-            return (x << 24) | (y << 12) | z;
+        public override readonly int GetHashCode() {
+            return (int)((x << 24) | (y << 12) | z);
         }
 
-        public override string ToString() => $"({x}, {y}, {z})";
+        public override readonly string ToString() => $"({x}, {y}, {z})";
 
-        public Vector3Int WithX(int x) => new(x, y, z);
-        public Vector3Int WithY(int y) => new(x, y, z);
-        public Vector3Int WithZ(int z) => new(x, y, z);
+        public readonly Vector3Int WithX(long x) => new(x, y, z);
+        public readonly Vector3Int WithY(long y) => new(x, y, z);
+        public readonly Vector3Int WithZ(long z) => new(x, y, z);
     }
 }
