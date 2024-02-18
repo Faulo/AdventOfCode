@@ -32,12 +32,12 @@ def build(path, version) {
     }
 }
 
+properties([
+	disableConcurrentBuilds(),
+	disableResume()
+])
+
 node('docker') {
-	options {
-		disableConcurrentBuilds()
-		disableResume()
-	}
-	
 	checkout scm
 	
 	def projects = [
