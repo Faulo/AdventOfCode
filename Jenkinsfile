@@ -5,8 +5,8 @@ def prepare(solution, version) {
 		'Day21', 'Day22', 'Day23', 'Day24', 'Day25'
 	]
 	
-	return {	
-        withDockerContainer(image: "mcr.microsoft.com/devcontainers/dotnet:${version}") {
+	return {
+        withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${version}") {
 			for (project in projects) {
 				def path = "${solution}/${project}"
 				if (fileExists(path)) {
@@ -48,8 +48,8 @@ node('windows && docker') {
 	
 	def branches = [:]
 	
-	branches['Year2022'] = prepare('Year2022', '7.0')
-	branches['Year2023'] = prepare('Year2023', '8.0')
+	branches['Year2022'] = prepare('Year2022', '7.0-nanoserver-1809')
+	branches['Year2023'] = prepare('Year2023', '8.0-nanoserver-1809')
 	
 	parallel branches
 }
