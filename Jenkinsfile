@@ -37,7 +37,7 @@ properties([
 	disableResume()
 ])
 
-node('docker') {
+node('windows && docker') {
 	checkout scm
 	
 	def projects = [
