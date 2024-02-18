@@ -37,7 +37,7 @@ properties([
 	disableResume()
 ])
 
-node('windows && docker') {
+node('linux && docker') {
 	checkout scm
 	
 	def projects = [
@@ -48,8 +48,8 @@ node('windows && docker') {
 	
 	def branches = [:]
 	
-	branches['Year2022'] = prepare('Year2022', '7.0-nanoserver-1809')
-	branches['Year2023'] = prepare('Year2023', '8.0-nanoserver-1809')
+	branches['Year2022'] = prepare('Year2022', '7.0')
+	branches['Year2023'] = prepare('Year2023', '8.0')
 	
 	parallel branches
 }
