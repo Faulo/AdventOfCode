@@ -5,7 +5,14 @@ namespace Day24;
 
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
-    const float ERROR_MARGIN = 1023f / 1024;
+    const float ERROR_MARGIN = 1f / 1024;
+
+    [TestCase("example-1.txt", 47)]
+    public void Test_Runtime_SumOfStonePosition(string file, long expected) {
+        var sut = new Runtime(file);
+
+        Assert.That(sut.sumOfStonePosition, Is.EqualTo(expected));
+    }
 
     [TestCase("example-1.txt", 7, 27, 2)]
     public void Test_Runtime_GetNumberOfCollisions(string file, long min, long max, long expected) {
