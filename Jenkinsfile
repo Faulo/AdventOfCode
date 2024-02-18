@@ -32,7 +32,7 @@ def build(path, version) {
 		callShell 'dotnet build'
 	}
 	stage("${path}: test") {
-		callShell 'dotnet test --logger junit'
+		callShellStatus 'dotnet test --logger junit'
 		junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 	}
 	stage("${path}: run") {
