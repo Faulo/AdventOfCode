@@ -6,15 +6,21 @@ def prepare(solution, version) {
 	]
 	
 	return {
-        withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${version}") {
-			stage("${path}: Restore") {
-				callShell 'dotnet restore'
-			}
-			
-			for (project in projects) {
-				def path = "${solution}/${project}"
-				if (fileExists(path)) {
-					build(path, version)
+		if (fileExists(solution)) {
+			dir(solution) {
+				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${version}") {
+					stage("${solution}: restore") {
+						callShell 'dotnet restore'
+					}
+					
+					for (project in projects) {
+						def path = "${solution}/${project}"
+						if (fileExists(project)) {
+							dir(project) {
+								build(path, version)
+							}
+						}
+					}
 				}
 			}
 		}
@@ -22,18 +28,16 @@ def prepare(solution, version) {
 }
 
 def build(path, version) {
-    dir(path) {
-		stage("${path}: Build") {
-			callShell 'dotnet build'
-		}
-		stage("${path}: Test") {
-			callShell 'dotnet test --logger junit'
-			junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-		}
-		stage("${path}: Run") {
-			callShell 'dotnet run'
-		}
-    }
+	stage("${path}: build") {
+		callShell 'dotnet build'
+	}
+	stage("${path}: test") {
+		callShell 'dotnet test --logger junit'
+		junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
+	}
+	stage("${path}: run") {
+		callShell 'dotnet run'
+	}
 }
 
 properties([
