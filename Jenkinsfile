@@ -20,14 +20,14 @@ def prepare(solution, version) {
 def build(path, version) {
     dir(path) {
 		stage("${path}: Build") {
-			sh 'dotnet build'
+			callShell 'dotnet build'
 		}
 		stage("${path}: Test") {
-			sh(script: 'dotnet test --logger junit', returnStatus: true)
+			callShell 'dotnet test --logger junit'
 			junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 		}
 		stage("${path}: Run") {
-			sh 'dotnet run'
+			callShell 'dotnet run'
 		}
     }
 }
