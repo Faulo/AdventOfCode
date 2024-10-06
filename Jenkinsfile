@@ -76,9 +76,9 @@ def build(path, unix) {
 	}
 	stage("${path}: run") {
 		if (unix) {
-			sh 'dotnet run --stack-size 10000'
+			sh 'dotnet run'
 		} else {
-			bat 'dotnet run --stack-size 10000'
+			bat 'dotnet run'
 		}
 	}
 }
