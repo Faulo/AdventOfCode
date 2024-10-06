@@ -8,19 +8,24 @@ def prepare(solution, version) {
 	return {
 		if (fileExists(solution)) {
 			dir(solution) {
-				def tag = isUnix()
+				def unix = isUnix()
+				def tag = unix
 					? version
-					: version + "-nanoserver-1809"
+					: version + "-nanoserver-1809" // "-windowsservercore-ltsc2019"
 				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
 					stage("${solution}: restore") {
-						callShell 'dotnet restore'
+						if (unix) {
+							sh 'dotnet restore'
+						} else {
+							bat 'dotnet restore'
+						}
 					}
 					
 					for (project in projects) {
 						def path = "${solution}/${project}"
 						if (fileExists(project)) {
 							dir(project) {
-								build(path, version)
+								build(path, unix)
 							}
 						}
 					}
@@ -30,16 +35,28 @@ def prepare(solution, version) {
 	}
 }
 
-def build(path, version) {
+def build(path, unix) {
 	stage("${path}: build") {
-		callShell 'dotnet build'
+		if (unix) {
+			sh 'dotnet build'
+		} else {
+			bat 'dotnet build'
+		}
 	}
 	stage("${path}: test") {
-		callShellStatus 'dotnet test --logger junit'
+		if (unix) {
+			sh 'dotnet test --logger junit'
+		} else {
+			bat 'dotnet test --logger junit'
+		}
 		junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
 	}
 	stage("${path}: run") {
-		callShell 'dotnet run'
+		if (unix) {
+			sh 'dotnet run'
+		} else {
+			bat 'dotnet run'
+		}
 	}
 }
 
