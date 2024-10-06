@@ -1,17 +1,40 @@
-def prepare(solution, version) {	
+def prepare(solution, version) {
 	def projects = [
-		'Day01', 'Day02', 'Day03', 'Day04', 'Day05', 'Day06', 'Day07', 'Day08', 'Day09', 'Day10',
-		'Day11', 'Day12', 'Day13', 'Day14', 'Day15', 'Day16', 'Day17', 'Day18', 'Day19', 'Day20',
-		'Day21', 'Day22', 'Day23', 'Day24', 'Day25'
+		'Day01',
+		'Day02',
+		'Day03',
+		'Day04',
+		'Day05',
+		'Day06',
+		'Day07',
+		'Day08',
+		'Day09',
+		'Day10',
+		'Day11',
+		'Day12',
+		'Day13',
+		'Day14',
+		'Day15',
+		'Day16',
+		'Day17',
+		'Day18',
+		'Day19',
+		'Day20',
+		'Day21',
+		'Day22',
+		'Day23',
+		'Day24',
+		'Day25'
 	]
-	
+
 	return {
 		if (fileExists(solution)) {
 			dir(solution) {
 				def unix = isUnix()
 				def tag = unix
-					? version
-					: version + "-nanoserver-1809" // "-windowsservercore-ltsc2019"
+						? version
+						: version + "-nanoserver-1809" // "-windowsservercore-ltsc2019"
+
 				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
 					stage("${solution}: restore") {
 						if (unix) {
@@ -20,7 +43,7 @@ def prepare(solution, version) {
 							bat 'dotnet restore'
 						}
 					}
-					
+
 					for (project in projects) {
 						def path = "${solution}/${project}"
 						if (fileExists(project)) {
@@ -53,31 +76,38 @@ def build(path, unix) {
 	}
 	stage("${path}: run") {
 		if (unix) {
-			// sh 'dotnet run'
+			sh 'dotnet run'
 		} else {
-			// bat 'dotnet run'
+			bat 'dotnet run'
 		}
 	}
 }
 
 pipeline {
-    agent {
-        label 'docker'
-    }
+	agent {
+		label 'docker'
+	}
 	options {
 		disableConcurrentBuilds()
 		disableResume()
 	}
-    stages {
-        stage('Index workspace') {
-            steps {
-                script {
+	stages {
+		stage('Index workspace') {
+			steps {
+				script {
+					def useMultithreading = false
 					def branches = [:]
-					
-					branches['Year2022'] = prepare('Year2022', '7.0')
+
 					branches['Year2023'] = prepare('Year2023', '8.0')
-					
-					parallel branches
+					branches['Year2022'] = prepare('Year2022', '7.0')
+
+					if (useMultithreading) {
+						parallel branches
+					} else {
+						for (def branch in branches.values()) {
+							branch()
+						}
+					}
 				}
 			}
 		}
