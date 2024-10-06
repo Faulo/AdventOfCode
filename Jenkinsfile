@@ -33,7 +33,7 @@ def prepare(solution, version) {
 				def unix = isUnix()
 				def tag = unix
 						? version
-						: version + "-nanoserver-1809" // "-windowsservercore-ltsc2019"
+						: version + "-windowsservercore-ltsc2019" // "-nanoserver-1809" "-windowsservercore-ltsc2019"
 
 				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
 					stage("${solution}: restore") {
