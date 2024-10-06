@@ -8,7 +8,10 @@ def prepare(solution, version) {
 	return {
 		if (fileExists(solution)) {
 			dir(solution) {
-				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${version}") {
+				def tag = isUnix()
+					? version
+					: version + "-nanoserver-1809"
+				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
 					stage("${solution}: restore") {
 						callShell 'dotnet restore'
 					}
@@ -45,7 +48,7 @@ properties([
 	disableResume()
 ])
 
-node('linux && docker') {
+node('docker') {
 	checkout scm
 	
 	def projects = [
