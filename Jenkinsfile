@@ -33,7 +33,7 @@ def prepare(solution, version) {
 				def unix = isUnix()
 				def tag = unix
 						? version
-						: version + "-windowsservercore-ltsc2019" // "-nanoserver-1809" "-windowsservercore-ltsc2019"
+						: version + "-nanoserver-1809" // "-nanoserver-1809" "-windowsservercore-ltsc2019"
 
 				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
 					stage("${solution}: restore") {
@@ -76,9 +76,9 @@ def build(path, unix) {
 	}
 	stage("${path}: run") {
 		if (unix) {
-			sh 'dotnet run'
+			sh 'dotnet run --stack-size 10000'
 		} else {
-			bat 'dotnet run'
+			bat 'dotnet run --stack-size 10000'
 		}
 	}
 }
