@@ -10,10 +10,10 @@ public class Tests {
         Assert.That(new Runtime(file).safeReports, Is.EqualTo(expected));
     }
 
-    [TestCase("example-1.txt", true, 4)]
-    [TestCase("input.txt", true, 569)]
-    public void SafeReportsWithDampener(string file, bool useDampener, int expected) {
-        Assert.That(new Runtime(file, useDampener).safeReports, Is.EqualTo(expected));
+    [TestCase("example-1.txt", 4)]
+    [TestCase("input.txt", 569)]
+    public void SafeReportsWithDampener(string file, int expected) {
+        Assert.That(new Runtime(file, true).safeReports, Is.EqualTo(expected));
     }
 
     [TestCase(10, 10, 0)]
