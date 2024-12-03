@@ -31,6 +31,7 @@ class TuningTrouble {
             } else {
                 dict[current] = 1;
             }
+
             if (i >= length) {
                 char previous = data[i - length];
                 if (dict[previous] == 1) {
@@ -39,10 +40,12 @@ class TuningTrouble {
                     dict[previous]--;
                 }
             }
+
             if (dict.Count == length) {
                 return i + 1;
             }
         }
+
         throw new Exception();
     }
 }

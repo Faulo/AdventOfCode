@@ -24,6 +24,7 @@ class SupplyStacks {
                 return matches.Count;
             }
         }
+
         throw new Exception("Failed to find any integers");
     }
 
@@ -34,8 +35,10 @@ class SupplyStacks {
             if (matches.Count > 0) {
                 return height;
             }
+
             height++;
         }
+
         throw new Exception("Failed to find any integers");
     }
 
@@ -46,6 +49,7 @@ class SupplyStacks {
         for (int i = 1; i <= count; i++) {
             stacks[i] = new();
         }
+
         foreach (string line in ReadFileToArray().Take(maxHeight)) {
             int cursor = 1;
             for (int i = 1; i <= count; i++) {
@@ -55,12 +59,15 @@ class SupplyStacks {
                 if (letter != ' ') {
                     stacks[i].Add(letter);
                 }
+
                 cursor += 4;
             }
         }
+
         for (int i = 1; i <= count; i++) {
             stacks[i].Reverse();
         }
+
         return stacks.ToDictionary(keyval => keyval.Key, keyval => new Stack<char>(keyval.Value));
     }
 
@@ -81,9 +88,11 @@ class SupplyStacks {
         if (moveCount.HasValue) {
             moves = moves.Take(moveCount.Value);
         }
+
         foreach (var move in moves) {
             Execute(move, stacks, model);
         }
+
         return PrintStacks(stacks);
     }
 
@@ -93,16 +102,19 @@ class SupplyStacks {
                 for (int i = 0; i < move.amount; i++) {
                     stacks[move.target].Push(stacks[move.source].Pop());
                 }
+
                 break;
             case Model.CrateMover9001:
                 var list = new List<char>();
                 for (int i = 0; i < move.amount; i++) {
                     list.Add(stacks[move.source].Pop());
                 }
+
                 list.Reverse();
                 foreach (char letter in list) {
                     stacks[move.target].Push(letter);
                 }
+
                 break;
             default:
                 throw new Exception();
@@ -114,6 +126,7 @@ class SupplyStacks {
         foreach (var (index, stack) in stacks) {
             builder.Append(stack.Count == 0 ? ' ' : stack.Peek());
         }
+
         return builder.ToString();
     }
 }

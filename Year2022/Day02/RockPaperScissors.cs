@@ -22,9 +22,9 @@ class RockPaperScissors {
     internal static int CalculateLinePickScore(string line, MatchFormat format) {
         return format switch {
             MatchFormat.PickAndPick => line.Split(' ') switch {
-                [_, "X"] => SCORE_ROCK,
-                [_, "Y"] => SCORE_PAPER,
-                [_, "Z"] => SCORE_SCISSORS,
+            [_, "X"] => SCORE_ROCK,
+            [_, "Y"] => SCORE_PAPER,
+            [_, "Z"] => SCORE_SCISSORS,
                 _ => throw new NotImplementedException(),
             },
             MatchFormat.PickAndResult => line switch {
@@ -65,9 +65,9 @@ class RockPaperScissors {
                 _ => throw new NotImplementedException(),
             },
             MatchFormat.PickAndResult => line.Split(' ') switch {
-                [_, "X"] => SCORE_LOSS,
-                [_, "Y"] => SCORE_DRAW,
-                [_, "Z"] => SCORE_WIN,
+            [_, "X"] => SCORE_LOSS,
+            [_, "Y"] => SCORE_DRAW,
+            [_, "Z"] => SCORE_WIN,
                 _ => throw new NotImplementedException(),
             },
             _ => throw new NotImplementedException(),
