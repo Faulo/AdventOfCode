@@ -11,6 +11,7 @@ public class Tests {
     }
 
     [TestCase("example-2.txt", 48)]
+    [TestCase("input.txt", 56275602)]
     public void MultiplyWithDo(string file, int expected) {
         Assert.That(new Runtime(file, true).multSum, Is.EqualTo(expected));
     }
