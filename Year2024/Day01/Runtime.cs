@@ -3,15 +3,16 @@ using Utilities;
 
 namespace Day01;
 
-sealed class Runtime {
+sealed partial class Runtime {
     internal readonly List<int> left = [];
     internal readonly List<int> right = [];
 
-    readonly Regex numberExpression = new("\\d+");
+    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
+    private static partial Regex NumberExpression();
 
     internal Runtime(string file) {
         foreach (string line in new FileInput(file).ReadLines()) {
-            var matches = numberExpression.Matches(line);
+            var matches = NumberExpression().Matches(line);
             left.Add(int.Parse(matches[0].Value));
             right.Add(int.Parse(matches[1].Value));
         }
@@ -30,6 +31,19 @@ sealed class Runtime {
                 right.Remove(rightMin);
 
                 sum += Delta(leftMin, rightMin);
+            }
+
+            return sum;
+        }
+    }
+
+    internal int similarityScore {
+        get {
+            int sum = 0;
+
+            foreach (int number in left) {
+                int count = right.Count(n => n == number);
+                sum += number * count;
             }
 
             return sum;
