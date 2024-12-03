@@ -1,4 +1,3 @@
-using Day01;
 using NUnit.Framework;
 
 namespace Day02;
