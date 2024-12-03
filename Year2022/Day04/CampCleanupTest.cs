@@ -5,20 +5,20 @@ namespace Day04;
 class CampCleanupTest {
     [TestCase("2-4,6-8", 2, 4, 6, 8)]
     public void TestDivideIntoSecions(string line, int start1, int stop1, int start2, int stop2) {
-        Assert.AreEqual(((start1, stop1), (start2, stop2)), CampCleanup.DivideIntoSections(line));
+        Assert.That(CampCleanup.DivideIntoSections(line), Is.EqualTo(((start1, stop1), (start2, stop2))));
     }
 
     [TestCase(2, 4, 6, 8, false)]
     [TestCase(2, 8, 6, 8, true)]
     [TestCase(6, 8, 2, 8, true)]
     public void TestDoSectionsOverlapCompletely(int start1, int stop1, int start2, int stop2, bool expected) {
-        Assert.AreEqual(expected, CampCleanup.DoSectionsOverlapCompletely((start1, stop1), (start2, stop2)));
+        Assert.That(CampCleanup.DoSectionsOverlapCompletely((start1, stop1), (start2, stop2)), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", 2)]
     [TestCase("input.txt", 567)]
     public void TestSumOfCompletelyOverlappingSections(string file, int count) {
-        Assert.AreEqual(count, CampCleanup.SumOfCompletelyOverlappingSections(file));
+        Assert.That(CampCleanup.SumOfCompletelyOverlappingSections(file), Is.EqualTo(count));
     }
 
     [TestCase(2, 4, 6, 8, false)]
@@ -28,12 +28,12 @@ class CampCleanupTest {
     [TestCase(2, 6, 4, 8, true)]
     [TestCase(6, 6, 4, 6, true)]
     public void TestDoSectionsOverlap(int start1, int stop1, int start2, int stop2, bool expected) {
-        Assert.AreEqual(expected, CampCleanup.DoSectionsOverlap((start1, stop1), (start2, stop2)));
+        Assert.That(CampCleanup.DoSectionsOverlap((start1, stop1), (start2, stop2)), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", 4)]
     [TestCase("input.txt", 907)]
     public void TestSumOfOverlappingSections(string file, int count) {
-        Assert.AreEqual(count, CampCleanup.SumOfOverlappingSections(file));
+        Assert.That(CampCleanup.SumOfOverlappingSections(file), Is.EqualTo(count));
     }
 }

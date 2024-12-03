@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Day02;
 
@@ -20,7 +21,7 @@ class RockPaperSchissorsTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 6)]
     [TestCase("C Z", MatchFormat.PickAndResult, 7)]
     public void TestCalculateLineScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, RockPaperScissors.CalculateLineScore(line, format));
+        Assert.That(RockPaperScissors.CalculateLineScore(line, format), Is.EqualTo(expected));
     }
 
     [TestCase("A Y", MatchFormat.PickAndPick, 2)]
@@ -30,7 +31,7 @@ class RockPaperSchissorsTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 3)]
     [TestCase("C Z", MatchFormat.PickAndResult, 1)]
     public void TestCalculateLinePickScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, RockPaperScissors.CalculateLinePickScore(line, format));
+        Assert.That(RockPaperScissors.CalculateLinePickScore(line, format), Is.EqualTo(expected));
     }
 
     [TestCase("A Y", MatchFormat.PickAndPick, 6)]
@@ -40,7 +41,7 @@ class RockPaperSchissorsTest {
     [TestCase("C Z", MatchFormat.PickAndPick, 3)]
     [TestCase("C Z", MatchFormat.PickAndResult, 6)]
     public void TestCalculateLineWinScore(string line, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, RockPaperScissors.CalculateLineWinScore(line, format));
+        Assert.That(RockPaperScissors.CalculateLineWinScore(line, format), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", MatchFormat.PickAndPick, 15)]
@@ -48,6 +49,6 @@ class RockPaperSchissorsTest {
     [TestCase("input.txt", MatchFormat.PickAndPick, 17189)]
     [TestCase("input.txt", MatchFormat.PickAndResult, 13490)]
     public void TestCalculateTotalScore(string file, MatchFormat format, int expected) {
-        Assert.AreEqual(expected, RockPaperScissors.CalculateTotalScore(file, format));
+        Assert.That(RockPaperScissors.CalculateTotalScore(file, format), Is.EqualTo(expected));
     }
 }

@@ -12,12 +12,12 @@ class TuningTroubleTest {
     [TestCase("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", MessageType.StartOfPacket, 11)]
     [TestCase("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", MessageType.StartOfMessage, 26)]
     public void TestFindStart(string data, MessageType type, int expected) {
-        Assert.AreEqual(expected, TuningTrouble.FindStart(data.ToCharArray(), type));
+        Assert.That(TuningTrouble.FindStart(data.ToCharArray(), type), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", "mjqjpqmgbljsphdztnvjfqwrcgsmlb")]
     public void TestParseMoves(string file, string data) {
-        Assert.AreEqual(data.ToCharArray(), new TuningTrouble(file).ReadFile());
+        Assert.That(new TuningTrouble(file).ReadFile(), Is.EqualTo(data.ToCharArray()));
     }
 
     [TestCase("example.txt", MessageType.StartOfPacket, 7)]
@@ -25,6 +25,6 @@ class TuningTroubleTest {
     [TestCase("input.txt", MessageType.StartOfPacket, 1262)]
     [TestCase("input.txt", MessageType.StartOfMessage, 3444)]
     public void TestFindStartInFile(string file, MessageType type, int expected) {
-        Assert.AreEqual(expected, new TuningTrouble(file).FindStartInFile(type));
+        Assert.That(new TuningTrouble(file).FindStartInFile(type), Is.EqualTo(expected));
     }
 }

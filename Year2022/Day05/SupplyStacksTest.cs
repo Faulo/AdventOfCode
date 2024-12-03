@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Day05;
 
@@ -6,17 +7,17 @@ class SupplyStacksTest {
     [TestCase("example.txt", 3)]
     [TestCase("input.txt", 9)]
     public void TestParseStackCount(string file, int count) {
-        Assert.AreEqual(count, new SupplyStacks(file).ParseStackCount());
+        Assert.That(new SupplyStacks(file).ParseStackCount(), Is.EqualTo(count));
     }
     [TestCase("example.txt", 3)]
     [TestCase("input.txt", 8)]
     public void TestParseStackMaxHeight(string file, int count) {
-        Assert.AreEqual(count, new SupplyStacks(file).ParseStackMaxHeight());
+        Assert.That(new SupplyStacks(file).ParseStackMaxHeight(), Is.EqualTo(count));
     }
 
     [TestCase("example.txt")]
     public void TestParseStacksMatchesStackCount(string file) {
-        Assert.AreEqual(new SupplyStacks(file).ParseStackCount(), new SupplyStacks(file).ParseStacks().Count);
+        Assert.That(new SupplyStacks(file).ParseStacks().Count, Is.EqualTo(new SupplyStacks(file).ParseStackCount()));
     }
 
     [TestCase("example.txt", 1, "ZN")]
@@ -33,7 +34,7 @@ class SupplyStacksTest {
     public void TestParseMoves(string file, int index, int amount, int source, int target) {
         var moves = new SupplyStacks(file).ParseMoves();
 
-        Assert.AreEqual((amount, source, target), moves.ElementAt(index));
+        Assert.That(moves.ElementAt(index), Is.EqualTo((amount, source, target)));
     }
 
     [Test]
@@ -84,12 +85,12 @@ class SupplyStacksTest {
             [8] = new(new[] { 'E' }),
         };
 
-        Assert.AreEqual(" DCE", SupplyStacks.PrintStacks(stacks));
+        Assert.That(SupplyStacks.PrintStacks(stacks), Is.EqualTo(" DCE"));
     }
 
     [TestCase("example.txt", 1, "DCP", Model.CrateMover9000)]
     public void TestExecuteExampleMovesAfter(string file, int moveCount, string expected, Model model) {
-        Assert.AreEqual(expected, new SupplyStacks(file, model).ExecuteAndPrint(moveCount));
+        Assert.That(new SupplyStacks(file, model).ExecuteAndPrint(moveCount), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", "CMZ", Model.CrateMover9000)]
@@ -97,6 +98,6 @@ class SupplyStacksTest {
     [TestCase("input.txt", "QGTHFZBHV", Model.CrateMover9000)]
     [TestCase("input.txt", "MGDMPSZTM", Model.CrateMover9001)]
     public void TestExecuteExampleMoves(string file, string expected, Model model) {
-        Assert.AreEqual(expected, new SupplyStacks(file, model).ExecuteAndPrint());
+        Assert.That(new SupplyStacks(file, model).ExecuteAndPrint(), Is.EqualTo(expected));
     }
 }

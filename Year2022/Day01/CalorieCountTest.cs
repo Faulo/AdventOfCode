@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Day01;
 
@@ -33,12 +34,12 @@ public class CalorieCountTest {
     [TestCase("example.txt", 24000)]
     [TestCase("input.txt", 66306)]
     public void TestFindMostCalories(string file, int expected) {
-        Assert.AreEqual(expected, CalorieCount.FindMostCalories(file));
+        Assert.That(CalorieCount.FindMostCalories(file), Is.EqualTo(expected));
     }
 
     [TestCase("example.txt", 45000)]
     [TestCase("input.txt", 195292)]
     public void TestFindSumOfTopThreeCalories(string file, int expected) {
-        Assert.AreEqual(expected, CalorieCount.FindSumOfTopThreeCalories(file));
+        Assert.That(CalorieCount.FindSumOfTopThreeCalories(file), Is.EqualTo(expected));
     }
 }
