@@ -48,12 +48,12 @@
 
         public long manhattenDistance => x64 + y64;
 
-        public IEnumerable<Vector2Int> neighbors => new Vector2Int[] {
+        public IEnumerable<Vector2Int> neighbors => [
             new(x, y-1),
             new(x, y+1),
             new(x-1, y),
             new(x+1, y),
-        };
+        ];
 
         public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.x + b.x, a.y + b.y);
         public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new(a.x - b.x, a.y - b.y);

@@ -44,7 +44,7 @@ sealed partial class Runtime {
         return false;
     }
 
-    bool IsSafe(IReadOnlyList<int> row) {
+    static bool IsSafe(IReadOnlyList<int> row) {
         int count = 0;
 
         for (int i = 1; i < row.Count; i++) {
