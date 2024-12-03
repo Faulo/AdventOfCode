@@ -26,11 +26,13 @@ class CalorieCount {
                 if (elf > 0) {
                     yield return elf;
                 }
+
                 elf = 0;
             } else {
                 elf += int.Parse(line);
             }
         }
+
         if (elf > 0) {
             yield return elf;
         }

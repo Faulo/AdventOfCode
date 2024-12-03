@@ -20,6 +20,7 @@ sealed class Runtime {
             position = default;
             return false;
         }
+
         long numerator1 = (h2.velocity.y * dx) - (h2.velocity.x * dy);
         double t1 = (double)numerator1 / denominator;
         if (t1 <= 0) {
