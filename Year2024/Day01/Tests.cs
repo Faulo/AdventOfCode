@@ -11,6 +11,7 @@ public class Tests {
     }
 
     [TestCase("example-1.txt", 31)]
+    [TestCase("input.txt", 25574739)]
     public void SimilarityScore(string file, int expected) {
         Assert.That(new Runtime(file).similarityScore, Is.EqualTo(expected));
     }
