@@ -12,6 +12,7 @@ public class Tests {
     }
 
     [TestCase("example-1.txt", true, 4)]
+    [TestCase("input.txt", true, 569)]
     public void SafeReportsWithDampener(string file, bool useDampener, int expected) {
         Assert.That(new Runtime(file, useDampener).safeReports, Is.EqualTo(expected));
     }

@@ -26,14 +26,16 @@ sealed partial class Runtime {
         };
     }
 
-    bool IsSafe(int[] row) {
-        if (IsSafe(new(row), -1)) {
+    bool IsSafeWithDampener(IReadOnlyList<int> row) {
+        if (IsSafe(row)) {
             return true;
         }
 
         if (useDampener) {
-            for (int skipIndex = 0; skipIndex < row.Length; skipIndex++) {
-                if (IsSafe(new(row), skipIndex)) {
+            for (int skipIndex = 0; skipIndex < row.Count; skipIndex++) {
+                var skippedRow = new List<int>(row);
+                skippedRow.RemoveAt(skipIndex);
+                if (IsSafe(skippedRow)) {
                     return true;
                 }
             }
@@ -42,12 +44,9 @@ sealed partial class Runtime {
         return false;
     }
 
-    bool IsSafe(List<int> row, int skipIndex) {
-        if (skipIndex != -1) {
-            row.RemoveAt(skipIndex);
-        }
-
+    bool IsSafe(IReadOnlyList<int> row) {
         int count = 0;
+
         for (int i = 1; i < row.Count; i++) {
             count += SafeScore(row[i - 1], row[i]);
         }
@@ -59,7 +58,7 @@ sealed partial class Runtime {
 
     internal int safeReports {
         get {
-            return map.Count(IsSafe);
+            return map.Count(IsSafeWithDampener);
         }
     }
 }
