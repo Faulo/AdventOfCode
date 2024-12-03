@@ -98,6 +98,7 @@ pipeline {
 					def useMultithreading = false
 					def branches = [:]
 
+					branches['Year2024'] = prepare('Year2024', '9.0')
 					branches['Year2023'] = prepare('Year2023', '8.0')
 					branches['Year2022'] = prepare('Year2022', '7.0')
 
