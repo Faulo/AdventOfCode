@@ -4,9 +4,9 @@ using Utilities;
 namespace Day03;
 
 sealed partial class Runtime {
-    internal readonly (string name, int left, int right)[] instructions;
+    readonly (string name, int left, int right)[] instructions;
 
-    internal bool useDo;
+    readonly bool useDo;
 
     [GeneratedRegex("(mul|do|don't)\\((\\d{0,3}),?(\\d{0,3})\\)", RegexOptions.Compiled)]
     private static partial Regex NumberExpression();
