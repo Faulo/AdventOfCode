@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
 
-namespace Year2024.Day02;
+namespace Day02;
 
 sealed partial class Runtime {
     internal readonly int[][] map;

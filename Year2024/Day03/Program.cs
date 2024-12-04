@@ -1,4 +1,4 @@
-﻿using Year2024.Day03;
+﻿using Day03;
 
 Console.WriteLine($"{nameof(Runtime.multSum)}: {new Runtime("example-1.txt").multSum}");
 

@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using Year2024.Day01;
 
 namespace Day01;
 

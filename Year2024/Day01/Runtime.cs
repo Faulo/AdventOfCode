@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
 
-namespace Year2024.Day01;
+namespace Day01;
 
 sealed partial class Runtime {
     internal readonly List<int> left = [];

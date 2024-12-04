@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
 
-namespace Year2024.Day04;
+namespace Day04;
 
 sealed partial class Runtime {
     readonly (string name, int left, int right)[] instructions;
@@ -35,7 +35,7 @@ sealed partial class Runtime {
         return 0;
     }
 
-    internal int multSum {
+    internal int occurences {
         get {
             return instructions.Sum(Run);
         }
