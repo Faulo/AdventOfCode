@@ -1,4 +1,4 @@
-﻿using Day01;
+﻿using Year2024.Day01;
 
 Console.WriteLine($"{nameof(Runtime.totalDistance)}: {new Runtime("example-1.txt").totalDistance}");
 

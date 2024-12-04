@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Utilities;
 
-namespace Year2024.Day03;
+namespace Year2024.Day04;
 
 sealed partial class Runtime {
     readonly (string name, int left, int right)[] instructions;

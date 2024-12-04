@@ -1,4 +1,4 @@
-﻿using Day02;
+﻿using Year2024.Day02;
 
 Console.WriteLine($"{nameof(Runtime.safeReports)}: {new Runtime("example-1.txt").safeReports}");
 

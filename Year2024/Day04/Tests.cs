@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using Year2024.Day03;
+using Year2024.Day04;
 
-namespace Day03;
+namespace Day04;
 
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
