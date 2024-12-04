@@ -93,6 +93,16 @@ namespace Utilities {
             return sum;
         }
 
+        public bool TryGet(Vector2Int position, out char character) {
+            if (!IsInBounds(position)) {
+                character = default;
+                return false;
+            }
+
+            character = this[position];
+            return true;
+        }
+
         static readonly Vector2Int[] offsets = [
             Vector2Int.up,
             Vector2Int.down,
