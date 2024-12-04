@@ -59,27 +59,11 @@ def prepare(solution, version) {
 }
 
 def build(path, unix) {
-	stage("${path}: build") {
-		if (unix) {
-			sh 'dotnet build'
-		} else {
-			bat 'dotnet build'
-		}
-	}
-	stage("${path}: test") {
-		if (unix) {
-			sh 'dotnet test --logger junit'
-		} else {
-			bat 'dotnet test --logger junit'
-		}
+	stage(path) {
+		callShell 'dotnet build'
+		callShell 'dotnet test --logger junit'
 		junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
-	}
-	stage("${path}: run") {
-		if (unix) {
-			sh 'dotnet run'
-		} else {
-			bat 'dotnet run'
-		}
+		callShell 'dotnet run'
 	}
 }
 
