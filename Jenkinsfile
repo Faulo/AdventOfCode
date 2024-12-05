@@ -36,7 +36,7 @@ def prepare(solution, version) {
 						: version + "-nanoserver-1809" // "-nanoserver-1809" "-windowsservercore-ltsc2019"
 
 				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
-					stage("${solution}: restore") {
+					stage(solution) {
 						if (unix) {
 							sh 'dotnet restore'
 						} else {
