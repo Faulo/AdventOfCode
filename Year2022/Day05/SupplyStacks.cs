@@ -47,7 +47,7 @@ class SupplyStacks {
         int count = ParseStackCount();
         int maxHeight = ParseStackMaxHeight();
         for (int i = 1; i <= count; i++) {
-            stacks[i] = new();
+            stacks[i] = [];
         }
 
         foreach (string line in ReadFileToArray().Take(maxHeight)) {

@@ -23,7 +23,7 @@ class Runtime {
     internal class DirectoryNode : Node {
         internal override int size => children.Sum(child => child.size);
 
-        internal readonly HashSet<Node> children = new();
+        internal readonly HashSet<Node> children = [];
 
         public DirectoryNode(string path, DirectoryNode? parent = null) : base(path, parent) {
         }
@@ -46,7 +46,7 @@ class Runtime {
 
     DirectoryNode current;
 
-    readonly Dictionary<string, DirectoryNode> directories = new();
+    readonly Dictionary<string, DirectoryNode> directories = [];
 
     void ChangeDirectory(string path) {
         string fullPath = current.fullPath + "/" + path;
