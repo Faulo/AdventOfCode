@@ -9,7 +9,7 @@ class SupplyStacks {
     readonly Model model;
 
     internal SupplyStacks(string file, Model model = Model.CrateMover9000) {
-        input = new(file);
+        input = new(file, false);
         this.model = model;
     }
 

@@ -103,7 +103,7 @@ namespace Utilities {
             return true;
         }
 
-        static readonly Vector2Int[] offsets = [
+        public static readonly Vector2Int[] offsets = [
             Vector2Int.up,
             Vector2Int.down,
             Vector2Int.left,
