@@ -28,8 +28,12 @@ sealed partial class Runtime {
     }
 
     internal bool IsValid(int[] update) {
+        return IsValid(update, false);
+    }
+
+    bool IsValid(int[] update, bool fixUpdate) {
         foreach (var rule in rules) {
-            if (!IsValid(update, rule)) {
+            if (!IsValid(update, rule, fixUpdate)) {
                 return false;
             }
         }
@@ -37,11 +41,15 @@ sealed partial class Runtime {
         return true;
     }
 
-    bool IsValid(int[] update, (int left, int right) rule) {
+    static bool IsValid(int[] update, (int left, int right) rule, bool fixUpdate) {
         for (int i = 0; i < update.Length; i++) {
             if (update[i] == rule.left) {
                 for (int j = 0; j < i; j++) {
                     if (update[j] == rule.right) {
+                        if (fixUpdate) {
+                            (update[i], update[j]) = (update[j], update[i]);
+                        }
+
                         return false;
                     }
                 }
@@ -50,6 +58,10 @@ sealed partial class Runtime {
             if (update[i] == rule.right) {
                 for (int j = i + 1; j < update.Length; j++) {
                     if (update[j] == rule.left) {
+                        if (fixUpdate) {
+                            (update[i], update[j]) = (update[j], update[i]);
+                        }
+
                         return false;
                     }
                 }
@@ -59,11 +71,33 @@ sealed partial class Runtime {
         return true;
     }
 
-    internal int sumOfMiddle {
+    internal bool FixValid(int[] update) {
+        if (IsValid(update)) {
+            return false;
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            if (IsValid(update, true)) {
+                return true;
+            }
+        }
+
+        throw new Exception($"Unfixable update: {string.Join(',', update)}");
+    }
+
+    internal int sumOfCorrectMiddle {
         get {
             return updates
                 .Where(IsValid)
-                .Sum(u => u[u.Length / 2]);
+                .Sum(u => u[u.Length >> 1]);
+        }
+    }
+
+    internal int sumOfWrongMiddle {
+        get {
+            return updates
+                .Where(FixValid)
+                .Sum(u => u[u.Length >> 1]);
         }
     }
 }
