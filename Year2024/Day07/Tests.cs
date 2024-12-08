@@ -11,6 +11,7 @@ public class Tests {
     }
 
     [TestCase("example-1.txt", 11387)]
+    [TestCase("input.txt", 637696070419031)]
     public void SumOfThree(string file, long expected) {
         Assert.That(new Runtime(file).sumOfThree, Is.EqualTo(expected));
     }

@@ -43,30 +43,33 @@ sealed partial class Runtime {
     internal static bool CanBeThree(long result, long[] operands) {
         int length = (int)Math.Pow(4, operands.Length - 1);
 
-        for (int i = 0; i < length; i++) {
-            long test = operands[0];
+        return Enumerable
+            .Range(0, length)
+            .Any(i => CanBeThreeInternal(result, operands, i));
+    }
 
-            for (int j = 1; j < operands.Length; j++) {
-                int op = (i >> (2 * (j - 1))) & 3;
-                test = op switch {
-                    0 => test * operands[j],
-                    1 => test + operands[j],
-                    2 => long.Parse(test.ToString() + operands[j]),
-                    3 => 0,
-                    _ => throw new NotImplementedException(),
-                };
+    static bool CanBeThreeInternal(long result, long[] operands, int i) {
+        long test = operands[0];
 
-                if (test == 0) {
+        for (int j = 1; j < operands.Length; j++) {
+            int op = (i >> (2 * (j - 1))) & 3;
+
+            switch (op) {
+                case 0:
+                    test *= operands[j];
                     break;
-                }
-            }
-
-            if (test == result) {
-                return true;
+                case 1:
+                    test += operands[j];
+                    break;
+                case 2:
+                    test = long.Parse(test.ToString() + operands[j]);
+                    break;
+                default:
+                    return false;
             }
         }
 
-        return false;
+        return test == result;
     }
 
     internal long sumOfTrue {
@@ -74,7 +77,7 @@ sealed partial class Runtime {
             return rows
                 .AsParallel()
                 .Where(row => CanBeTrue(row.result, row.operands))
-                .Sum(r => r.result);
+                .Sum(row => row.result);
         }
     }
 
@@ -83,7 +86,7 @@ sealed partial class Runtime {
             return rows
                 .AsParallel()
                 .Where(row => CanBeThree(row.result, row.operands))
-                .Sum(r => r.result);
+                .Sum(row => row.result);
         }
     }
 }
