@@ -11,16 +11,24 @@ sealed partial class Runtime {
             .Select(tile => tile.position)
             .ToArray();
 
-        internal void FindAntinodes(HashSet<Vector2Int> antinodes) {
+        internal void FindAntinodes(HashSet<Vector2Int> antinodes, bool anyDistance = false) {
             foreach (var a in positions) {
                 foreach (var b in positions) {
                     if (a == b) {
                         continue;
                     }
 
-                    var c = (2 * a) - b;
-                    if (map.IsInBounds(c)) {
-                        antinodes.Add(c);
+                    var delta = a - b;
+
+                    if (anyDistance) {
+                        for (int i = 0; map.IsInBounds(a + (delta * i)); i++) {
+                            antinodes.Add(a + (delta * i));
+                        }
+                    } else {
+                        var c = a + delta;
+                        if (map.IsInBounds(c)) {
+                            antinodes.Add(c);
+                        }
                     }
                 }
             }
@@ -45,12 +53,24 @@ sealed partial class Runtime {
         }
     }
 
-    internal long antinodeCount {
+    internal long simpleAntinodeCount {
         get {
             var positions = new HashSet<Vector2Int>();
 
             foreach (var a in antennas.Values) {
                 a.FindAntinodes(positions);
+            }
+
+            return positions.Count;
+        }
+    }
+
+    internal long complexAntinodeCount {
+        get {
+            var positions = new HashSet<Vector2Int>();
+
+            foreach (var a in antennas.Values) {
+                a.FindAntinodes(positions, true);
             }
 
             return positions.Count;
