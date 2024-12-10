@@ -4,6 +4,6 @@ Console.WriteLine($"{nameof(Runtime.defragChecksum)}: {new Runtime("example-1.tx
 
 Console.WriteLine($"{nameof(Runtime.defragChecksum)}: {new Runtime("input.txt").defragChecksum}");
 
-Console.WriteLine($"{nameof(Runtime.complexAntinodeCount)}: {new Runtime("example-1.txt").complexAntinodeCount}");
+Console.WriteLine($"{nameof(Runtime.smartDefragChecksum)}: {new Runtime("example-1.txt").smartDefragChecksum}");
 
-Console.WriteLine($"{nameof(Runtime.complexAntinodeCount)}: {new Runtime("input.txt").complexAntinodeCount}");
+Console.WriteLine($"{nameof(Runtime.smartDefragChecksum)}: {new Runtime("input.txt").smartDefragChecksum}");
