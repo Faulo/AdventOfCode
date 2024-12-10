@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day05;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 143)]
     [TestCase("input.txt", 5955)]
     public void SumOfCorrectMiddle(string file, int expected) {

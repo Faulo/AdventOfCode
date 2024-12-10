@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day04;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 18)]
     [TestCase("input.txt", 2358)]
     public void Straight(string file, int expected) {

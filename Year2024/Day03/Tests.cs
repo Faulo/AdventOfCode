@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day03;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 161)]
     [TestCase("input.txt", 174960292)]
     public void Multiply(string file, int expected) {

@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day07;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 3749)]
     [TestCase("input.txt", 66343330034722)]
     public void SumOfTrue(string file, long expected) {

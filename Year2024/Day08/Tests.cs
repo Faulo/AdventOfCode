@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day08;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 14)]
     [TestCase("input.txt", 299)]
     public void SimpleAntinodeCount(string file, long expected) {

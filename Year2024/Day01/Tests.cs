@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day01;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 11)]
     [TestCase("input.txt", 1603498)]
     public void TotalDistance(string file, int expected) {

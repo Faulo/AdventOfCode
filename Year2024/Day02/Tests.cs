@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Day02;
 
 [TestFixture(TestOf = typeof(Runtime))]
-public class Tests {
+sealed class Tests {
     [TestCase("example-1.txt", 2)]
     [TestCase("input.txt", 524)]
     public void SafeReports(string file, int expected) {
