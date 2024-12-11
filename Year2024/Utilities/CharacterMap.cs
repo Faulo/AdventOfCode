@@ -103,6 +103,15 @@ namespace Utilities {
             return true;
         }
 
+        public IEnumerable<(Vector2Int position, char character)> GetNeighbors(Vector2Int position) {
+            foreach (var offset in offsets) {
+                var p = position + offset;
+                if (IsInBounds(p)) {
+                    yield return (p, this[p]);
+                }
+            }
+        }
+
         public static readonly Vector2Int[] offsets = [
             Vector2Int.up,
             Vector2Int.down,
