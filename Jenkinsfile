@@ -34,8 +34,11 @@ def prepare(solution, version) {
 				def tag = unix
 						? version
 						: version + "-windowsservercore-ltsc2019" // "-nanoserver-1809" "-windowsservercore-ltsc2019"
+				def image = "mcr.microsoft.com/dotnet/sdk:${tag}"
 
-				withDockerContainer(image: "mcr.microsoft.com/dotnet/sdk:${tag}") {
+				callShell("docker pull ${image}")
+
+				withDockerContainer(image: image) {
 					stage(solution) {
 						callShell 'dotnet restore'
 					}
