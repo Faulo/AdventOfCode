@@ -93,14 +93,20 @@ sealed class Runtime {
 sealed class Node {
     internal static int positionIdSize {
         set {
+#if USE_LONG
             pathMaxSize = 1 + ((value - 1) >> 6); // ceil(n/64)
+#else
+            pathMaxSize = value;
+#endif
         }
     }
     static int pathMaxSize;
 
     internal int positionId;
     internal int ancestorCount;
-    internal ulong[] path;
+
+#if USE_LONG
+    internal ulong[] path = new ulong[pathMaxSize];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static (int word, ulong bit) SplitId(int id) {
@@ -118,6 +124,18 @@ sealed class Node {
         (int word, ulong bit) = SplitId(id);
         return (path[word] & bit) != 0;
     }
+#else
+    internal bool[] path = new bool[pathMaxSize];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void SetPath(int id) {
+        path[id] = true;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    bool GetPath(int id) {
+        return path[id];
+    }
+#endif
 
     internal Node(int positionId, Node? parent = null) {
         this.positionId = positionId;
@@ -127,7 +145,6 @@ sealed class Node {
             ancestorCount += parent.ancestorCount;
         }
 
-        path = new ulong[pathMaxSize];
         if (parent is not null) {
             Array.Copy(parent.path, path, pathMaxSize);
         }
