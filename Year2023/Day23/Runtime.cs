@@ -136,17 +136,20 @@ sealed class Node {
     }
 #endif
 
-    internal Node(int positionId, Node? parent = null) {
+    internal Node(int positionId) {
         this.positionId = positionId;
 
         ancestorCount = 1;
-        if (parent is not null) {
-            ancestorCount += parent.ancestorCount;
-        }
 
-        if (parent is not null) {
-            Array.Copy(parent.path, path, pathMaxSize);
-        }
+        SetPath(positionId);
+    }
+
+    internal Node(int positionId, Node parent) {
+        this.positionId = positionId;
+
+        ancestorCount = 1 + parent.ancestorCount;
+
+        Array.Copy(parent.path, path, pathMaxSize);
 
         SetPath(positionId);
     }
