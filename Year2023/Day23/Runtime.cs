@@ -18,27 +18,23 @@ sealed class Runtime {
 
             var neighbors = map
                 .allPositionsAndCharactersWithin
-                .Where(tile => positions.ContainsKey(tile.position))
-                .ToDictionary(
-                    tile => positions[tile.position],
-                    tile => tile.character
-                        .GetNeighbors()
-                        .Select(offset => offset + tile.position)
-                        .Where(map.IsInBounds)
-                        .Where(p => map[p].IsFree())
-                        .Select(p => positions[p])
-                        .ToArray()
-                );
-
-            var processedPaths = new HashSet<Node>();
+                .Where(tile => tile.character.IsFree())
+                .Select(tile => tile.character
+                    .GetNeighbors()
+                    .Select(offset => offset + tile.position)
+                    .Where(map.IsInBounds)
+                    .Where(p => map[p].IsFree())
+                    .Select(p => positions[p])
+                    .ToArray())
+                .ToArray()
+                .AsSpan();
 
             int count = 0;
 
             var queue = new Stack<Node>();
             queue.Push(new Node(positions[start]));
-            //queue.Enqueue(new Node(positions[start]));
 
-            int[] newNeighbors = new int[4];
+            var newNeighbors = new int[4].AsSpan();
             int newNeighborSize = 0;
             while (queue.TryPop(out var node)) {
                 var next = new List<int>();
@@ -47,7 +43,6 @@ sealed class Runtime {
                         if (neighborId == goalId) {
                             if (count < node.ancestorCount) {
                                 count = node.ancestorCount;
-                                Console.WriteLine(count);
                             }
                         } else {
                             newNeighbors[newNeighborSize++] = neighborId;
@@ -96,11 +91,33 @@ sealed class Runtime {
 }
 
 sealed class Node {
-    internal static int positionIdSize;
+    internal static int positionIdSize {
+        set {
+            pathMaxSize = 1 + ((value - 1) >> 6); // ceil(n/64)
+        }
+    }
+    static int pathMaxSize;
 
     internal int positionId;
     internal int ancestorCount;
-    internal bool[] path;
+    internal ulong[] path;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static (int word, ulong bit) SplitId(int id) {
+        int word = id >> 6;
+        int bit = id & 63;
+        return (word, 1UL << bit);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void SetPath(int id) {
+        (int word, ulong bit) = SplitId(id);
+        path[word] |= bit;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    bool GetPath(int id) {
+        (int word, ulong bit) = SplitId(id);
+        return (path[word] & bit) != 0;
+    }
 
     internal Node(int positionId, Node? parent = null) {
         this.positionId = positionId;
@@ -110,18 +127,18 @@ sealed class Node {
             ancestorCount += parent.ancestorCount;
         }
 
-        path = new bool[positionIdSize];
+        path = new ulong[pathMaxSize];
         if (parent is not null) {
-            Array.Copy(parent.path, path, positionIdSize);
+            Array.Copy(parent.path, path, pathMaxSize);
         }
 
-        path[positionId] = true;
+        SetPath(positionId);
     }
 
     internal Node BecomeChild(int positionId) {
         this.positionId = positionId;
         ancestorCount++;
-        path[positionId] = true;
+        SetPath(positionId);
         return this;
     }
 
@@ -136,7 +153,7 @@ sealed class Node {
     }
 
     internal bool IsAncestorOrSelf(int positionId) {
-        return path[positionId];
+        return GetPath(positionId);
     }
 }
 
