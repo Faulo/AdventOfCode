@@ -15,7 +15,7 @@ pipeline {
 		stage('Index workspace') {
 			steps {
 				script {
-					def useMultithreading = false
+					def useMultithreading = true
 
 					def years = [
 						'2015',

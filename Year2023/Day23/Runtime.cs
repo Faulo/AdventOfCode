@@ -37,7 +37,6 @@ sealed class Runtime {
             var newNeighbors = new int[4].AsSpan();
             int newNeighborSize = 0;
             while (queue.TryPop(out var node)) {
-                var next = new List<int>();
                 foreach (int neighborId in neighbors[node.positionId]) {
                     if (!node.IsAncestorOrSelf(neighborId)) {
                         if (neighborId == goalId) {
@@ -161,12 +160,6 @@ sealed class Node {
 
     internal Node CreateChild(int positionId) {
         return new Node(positionId, this);
-    }
-
-    public override int GetHashCode() => ancestorCount;
-
-    public override bool Equals(object? obj) {
-        return obj is Node node && path.AsSpan().SequenceEqual(node.path);
     }
 
     internal bool IsAncestorOrSelf(int positionId) {
