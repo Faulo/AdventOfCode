@@ -5,7 +5,7 @@ pipeline {
 	environment {
 		DOCKER_IMAGE_LINUX = "mcr.microsoft.com/dotnet/sdk:8.0"
 		DOCKER_IMAGE_WINDOWS = "mcr.microsoft.com/dotnet/sdk:8.0-windowsservercore-ltsc2019"
-		DOCKER_ARGS = ""
+		DOCKER_ARGS = " "
 	}
 	options {
 		disableConcurrentBuilds()
