@@ -1,4 +1,5 @@
-﻿using Utilities;
+﻿using System.Runtime.CompilerServices;
+using Utilities;
 
 namespace Day23;
 
@@ -140,14 +141,22 @@ sealed class Node {
 }
 
 static class Extensions {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsFree(this char character) => character != '#';
 
     internal static Vector2Int[] GetNeighbors(this char character) => character switch {
-        '.' => [Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right],
-        '^' => [Vector2Int.up],
-        'v' => [Vector2Int.down],
-        '<' => [Vector2Int.left],
-        '>' => [Vector2Int.right],
-        _ => [],
+        '.' => _all4,
+        '^' => _up,
+        'v' => _down,
+        '<' => _left,
+        '>' => _right,
+        _ => _none,
     };
+
+    static readonly Vector2Int[] _none = [];
+    static readonly Vector2Int[] _up = [Vector2Int.up];
+    static readonly Vector2Int[] _down = [Vector2Int.down];
+    static readonly Vector2Int[] _left = [Vector2Int.left];
+    static readonly Vector2Int[] _right = [Vector2Int.right];
+    static readonly Vector2Int[] _all4 = [Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right];
 }
