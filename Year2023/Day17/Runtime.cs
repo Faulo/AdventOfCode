@@ -38,34 +38,27 @@ sealed class Runtime {
     }
 
     void AStar(Node startNode) {
-        var openSet = new HashSet<Node>() {
-            startNode
-        };
+        var openSet = new PriorityQueue<Node, int>();
+        openSet.Enqueue(startNode, 0);
 
         var gScore = new Dictionary<Node, int>() {
             [startNode] = 0,
         };
 
-        do {
-            var current = openSet
-                .OrderBy(n => n.heatLossSum)
-                .First();
-
+        while (openSet.TryDequeue(out var current, out _)) {
             if (current.position == goal) {
                 break;
             }
-
-            openSet.Remove(current);
 
             foreach (var next in allDirections) {
                 if (TryCreateNode(current, next, out var child)) {
                     if (!gScore.TryGetValue(child, out int score) || child.heatLossSum < score) {
                         gScore[child] = child.heatLossSum;
-                        openSet.Add(child);
+                        openSet.Enqueue(child, child.heatLossSum);
                     }
                 }
             }
-        } while (openSet.Count > 0);
+        }
     }
 
     bool TryCreateNode(Node node, Directions direction, out Node child) {
