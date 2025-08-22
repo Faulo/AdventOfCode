@@ -32,7 +32,8 @@ sealed class Runtime {
             int count = 0;
 
             var queue = new Stack<Node>();
-            queue.Push(new Node(positions[start]));
+
+            queue.Push(Node.Rent().Init(positions[start]));
 
             var newNeighbors = new int[4].AsSpan();
             int newNeighborSize = 0;
@@ -49,12 +50,16 @@ sealed class Runtime {
                     }
                 }
 
-                while (newNeighborSize > 0) {
-                    int neighborId = newNeighbors[--newNeighborSize];
-                    var child = newNeighborSize == 0
-                        ? node.BecomeChild(neighborId)
-                        : node.CreateChild(neighborId);
-                    queue.Push(child);
+                if (newNeighborSize == 0) {
+                    Node.Return(node);
+                } else {
+                    while (newNeighborSize > 0) {
+                        int neighborId = newNeighbors[--newNeighborSize];
+                        var child = newNeighborSize == 0
+                            ? node.BecomeChild(neighborId)
+                            : node.CreateChild(neighborId);
+                        queue.Push(child);
+                    }
                 }
             }
 
@@ -90,6 +95,18 @@ sealed class Runtime {
 }
 
 sealed class Node {
+    static readonly Stack<Node> pool = new();
+
+    internal static Node Rent() {
+        return pool.Count > 0
+            ? pool.Pop()
+            : new Node();
+    }
+
+    internal static void Return(Node node) {
+        pool.Push(node);
+    }
+
     internal static int positionIdSize {
         set {
 #if USE_LONG
@@ -97,6 +114,7 @@ sealed class Node {
 #else
             pathMaxSize = value;
 #endif
+            pool.Clear();
         }
     }
     static int pathMaxSize;
@@ -136,15 +154,26 @@ sealed class Node {
     }
 #endif
 
+    internal Node() {
+    }
     internal Node(int positionId) {
+        Init(positionId);
+    }
+    internal Node(int positionId, Node parent) {
+        Init(positionId, parent);
+    }
+
+    internal Node Init(int positionId) {
         this.positionId = positionId;
 
         ancestorCount = 1;
 
         SetPath(positionId);
+
+        return this;
     }
 
-    internal Node(int positionId, Node parent) {
+    internal Node Init(int positionId, Node parent) {
         this.positionId = positionId;
 
         ancestorCount = 1 + parent.ancestorCount;
@@ -152,6 +181,8 @@ sealed class Node {
         Array.Copy(parent.path, path, pathMaxSize);
 
         SetPath(positionId);
+
+        return this;
     }
 
     internal Node BecomeChild(int positionId) {
@@ -162,7 +193,7 @@ sealed class Node {
     }
 
     internal Node CreateChild(int positionId) {
-        return new Node(positionId, this);
+        return Rent().Init(positionId, this);
     }
 
     internal bool IsAncestorOrSelf(int positionId) {
