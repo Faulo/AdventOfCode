@@ -1,11 +1,18 @@
 ﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Utilities;
 
 namespace Day23;
 
 sealed class Runtime {
-    static readonly bool useMultithreading = true;
+    enum ThreadingMode {
+        SingleThread,
+        PLINQ,
+        Tasks
+    }
+
+    static readonly ThreadingMode threading = ThreadingMode.PLINQ;
 
     readonly CharacterMap map;
     internal readonly Vector2Int start;
@@ -63,51 +70,84 @@ sealed class Runtime {
     internal int maximumNumberOfSteps {
         get {
             int count = 0;
-            var pool = new NodePool();
+            using var pool = new NodePool();
             var startNode = pool
                 .Rent()
                 .Init(positions[start]);
 
-            if (useMultithreading) {
-                int seedCount = 8 * Environment.ProcessorCount;
+            switch (threading) {
+                case ThreadingMode.SingleThread: {
+                    var queue = new Stack<Node>();
 
-                var queue = new Queue<Node>();
+                    queue.Push(startNode);
 
-                queue.Enqueue(startNode);
-
-                while (queue.TryDequeue(out var node)) {
-                    ProcessNode(pool, node, queue.Enqueue, ref count);
-                    if (queue.Count >= seedCount) {
-                        break;
+                    while (queue.TryPop(out var node)) {
+                        ProcessNode(pool, node, queue.Push, ref count);
                     }
+
+                    break;
                 }
+                case ThreadingMode.PLINQ: {
+                    int seedCount = 8 * Environment.ProcessorCount;
 
-                count = queue
-                    .AsParallel()
-                    .WithDegreeOfParallelism(Environment.ProcessorCount)
-                    .Select(seedNode => {
-                        var pool = new NodePool();
-                        var queue = new Stack<Node>();
+                    var queue = new Queue<Node>();
 
-                        queue.Push(seedNode);
+                    queue.Enqueue(startNode);
 
-                        int count = 0;
-
-                        while (queue.TryPop(out var node)) {
-                            ProcessNode(pool, node, queue.Push, ref count);
+                    while (queue.TryDequeue(out var node)) {
+                        ProcessNode(pool, node, queue.Enqueue, ref count);
+                        if (queue.Count >= seedCount) {
+                            break;
                         }
+                    }
 
-                        return count;
-                    })
-                    .Append(count)
-                    .Max();
-            } else {
-                var queue = new Stack<Node>();
+                    count = queue
+                        .AsParallel()
+                        .Select(seedNode => {
+                            using var pool = new NodePool();
+                            var queue = new Stack<Node>();
 
-                queue.Push(startNode);
+                            queue.Push(seedNode);
 
-                while (queue.TryPop(out var node)) {
-                    ProcessNode(pool, node, queue.Push, ref count);
+                            int count = 0;
+
+                            while (queue.TryPop(out var node)) {
+                                ProcessNode(pool, node, queue.Push, ref count);
+                            }
+
+                            return count;
+                        })
+                        .Append(count)
+                        .Max();
+
+                    break;
+                }
+                case ThreadingMode.Tasks: {
+                    ConcurrentBag<int> counts = [0];
+                    ConcurrentBag<Task> tasks = [];
+
+                    void startTask(Node node) {
+                        var task = Task.Factory.StartNew(() => {
+                            using var pool = new NodePool();
+                            int count = 0;
+
+                            ProcessNode(pool, node, startTask, ref count);
+
+                            if (count != 0) {
+                                counts.Add(count);
+                            }
+                        });
+                        tasks.Add(task);
+                    }
+
+                    startTask(startNode);
+
+                    while (tasks.Any(t => !t.IsCompletedSuccessfully)) {
+                        Thread.Sleep(10);
+                    }
+
+                    count = counts.Max();
+                    break;
                 }
             }
 
@@ -184,7 +224,7 @@ sealed class Runtime {
     }
 }
 
-sealed class NodePool {
+sealed class NodePool : IDisposable {
     readonly Stack<Node> pool = new();
 
     internal Node Rent() {
@@ -197,7 +237,9 @@ sealed class NodePool {
         pool.Push(node);
     }
 
-    internal readonly int[] tempNeighbors = new int[4];
+    internal readonly int[] tempNeighbors = ArrayPool<int>.Shared.Rent(4);
+
+    public void Dispose() => ArrayPool<int>.Shared.Return(tempNeighbors);
 }
 
 sealed class Node {
