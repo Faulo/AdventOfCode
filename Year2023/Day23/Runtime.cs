@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Utilities;
 
 namespace Day23;
@@ -16,8 +17,13 @@ sealed class Runtime {
     static readonly ThreadingMode threading = ThreadingMode.Tasks;
 
     sealed class TaskContext {
-        internal readonly ConcurrentStack<Node> queue = new();
-        internal readonly CancellationTokenSource cancellation = new();
+        internal readonly Channel<Node> channel = Channel.CreateUnbounded<Node>(
+            new UnboundedChannelOptions {
+                SingleReader = false,
+                SingleWriter = false,
+                AllowSynchronousContinuations = false,
+            }
+        );
 
         internal required Runtime runtime;
         internal required NodePool pool;
@@ -139,42 +145,43 @@ sealed class Runtime {
                     break;
                 }
                 case ThreadingMode.Tasks: {
-                    static int process(object? arg) {
-                        if (arg is not TaskContext context) {
-                            return 0;
-                        }
+                    int threadCount = Environment.ProcessorCount;
 
+                    var context = new TaskContext {
+                        runtime = this,
+                        pool = pool,
+                    };
+                    context.channel.Writer.TryWrite(startNode);
+
+                    static async Task<int> work(TaskContext context, int id) {
                         int count = 0;
 
-                        while (!context.cancellation.IsCancellationRequested) {
-                            if (context.queue.TryPop(out var node)) {
-                                context.runtime.ProcessNode(context.pool, node, context.queue.Push, ref count);
-                            } else {
-                                Thread.Sleep(10);
+                        var queue = new Stack<Node>();
+                        await foreach (var node in context.channel.Reader.ReadAllAsync()) {
+                            Console.WriteLine(id);
+                            context.runtime.ProcessNode(context.pool, node, child => context.channel.Writer.TryWrite(child), ref count);
+                            while (queue.TryPop(out var child)) {
+                                await context.channel.Writer.WriteAsync(child);
                             }
                         }
 
                         return count;
                     }
 
-                    int threadCount = Environment.ProcessorCount;
-                    var context = new TaskContext() { runtime = this, pool = pool };
-                    context.queue.Push(startNode);
-
                     var tasks = Enumerable
                         .Range(0, threadCount)
-                        .Select(i => Task.Factory.StartNew(process, context))
+                        .Select(i => work(context, i))
                         .ToArray();
 
                     while (pool.hasRentedNodes) {
                         Thread.Sleep(10);
                     }
 
-                    context.cancellation.Cancel();
+                    context.channel.Writer.Complete();
 
-                    Task.WaitAll(tasks);
-
-                    count = tasks.Max(t => t.Result);
+                    count = tasks
+                        .Select(t => t.Result)
+                        .Max();
 
                     break;
                 }
