@@ -154,15 +154,12 @@ sealed class Runtime {
                     context.channel.Writer.TryWrite(startNode);
 
                     static async Task<int> work(TaskContext context, int id) {
+                        await Task.Yield();
+
                         int count = 0;
 
-                        var queue = new Stack<Node>();
                         await foreach (var node in context.channel.Reader.ReadAllAsync()) {
-                            Console.WriteLine(id);
-                            context.runtime.ProcessNode(context.pool, node, child => context.channel.Writer.TryWrite(child), ref count);
-                            while (queue.TryPop(out var child)) {
-                                await context.channel.Writer.WriteAsync(child);
-                            }
+                            context.runtime.ProcessNode(context.pool, node, async child => await context.channel.Writer.WriteAsync(child), ref count);
                         }
 
                         return count;
