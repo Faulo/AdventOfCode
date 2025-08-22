@@ -14,6 +14,31 @@ sealed class Runtime {
         internal readonly ConcurrentStack<Node> queue = new();
         internal required int[][] neighbors;
         internal readonly CancellationTokenSource cancellation = new();
+
+        internal bool isWorking => isWorkMask != 0;
+
+        int isWorkMask;
+        int workerCount;
+
+        internal int newWorkId {
+            get {
+                lock (this) {
+                    return 1 << workerCount++;
+                }
+            }
+        }
+
+        internal void SetIsWorking(int id) {
+            lock (this) {
+                isWorkMask |= id;
+            }
+        }
+
+        internal void ClearIsWorking(int id) {
+            lock (this) {
+                isWorkMask &= ~id;
+            }
+        }
     }
 
     internal int maximumNumberOfSteps {
@@ -39,19 +64,21 @@ sealed class Runtime {
                     .Select(p => positions[p])
                     .ToArray())];
 
-            int count = 0;
-
             if (useMultithreading) {
                 static void process(object? arg) {
                     if (arg is not TaskContext context) {
                         return;
                     }
 
+                    int reset = context.newWorkId;
+
                     int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
                     int newNeighborSize = 0;
 
                     while (!context.cancellation.IsCancellationRequested) {
                         if (context.queue.TryPop(out var node)) {
+                            context.SetIsWorking(reset);
+
                             foreach (int neighborId in context.neighbors[node.positionId]) {
                                 if (!node.IsAncestorOrSelf(neighborId)) {
                                     if (neighborId == context.goalId) {
@@ -77,8 +104,10 @@ sealed class Runtime {
                                     context.queue.Push(child);
                                 }
                             }
+
+                            context.ClearIsWorking(reset);
                         } else {
-                            Thread.Sleep(10);
+                            Thread.Sleep(1);
                         }
                     }
 
@@ -96,16 +125,16 @@ sealed class Runtime {
                     .Select(i => Task.Factory.StartNew(process, context))
                     .ToArray();
 
-                while (Node.hasRentedNodes) {
+                while (!context.queue.IsEmpty || context.isWorking) {
                     Thread.Sleep(100);
                 }
 
-                count = context.count;
-
                 context.cancellation.Cancel();
 
-                Task.WaitAll(tasks);
+                return context.count;
             } else {
+                int count = 0;
+
                 var queue = new Stack<Node>();
 
                 queue.Push(Node.Rent().Init(positions[start]));
@@ -137,9 +166,9 @@ sealed class Runtime {
                         }
                     }
                 }
-            }
 
-            return count;
+                return count;
+            }
         }
     }
 
@@ -172,25 +201,14 @@ sealed class Runtime {
 
 sealed class Node {
     static readonly ConcurrentStack<Node> pool = new();
-    static int rentedNodeCount = 0;
-
-    internal static bool hasRentedNodes => rentedNodeCount > 0;
 
     internal static Node Rent() {
-        lock (pool) {
-            rentedNodeCount++;
-        }
-
         return pool.TryPop(out var node)
             ? node
             : new Node();
     }
 
     internal static void Return(Node node) {
-        lock (pool) {
-            rentedNodeCount--;
-        }
-
         pool.Push(node);
     }
 
@@ -202,7 +220,6 @@ sealed class Node {
             pathMaxSize = value;
 #endif
             pool.Clear();
-            rentedNodeCount = 0;
         }
     }
     static int pathMaxSize;
