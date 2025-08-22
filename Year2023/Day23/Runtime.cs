@@ -115,23 +115,25 @@ sealed class Runtime {
 
     void ProcessNode(NodePool pool, Node node, Action<Node> process, ref int count) {
         while (node.positionId != goalId) {
-            switch (neighbors[node.positionId].Length) {
+            int[] nodeNeighbors = neighbors[node.positionId];
+
+            switch (nodeNeighbors.Length) {
                 // exactly one neighbor means we go there
                 case 1: {
-                    if (node.IsAncestorOrSelf(neighbors[node.positionId][0])) {
+                    if (node.IsAncestorOrSelf(nodeNeighbors[0])) {
                         // dead end
                         pool.Return(node);
                         return;
                     }
 
-                    node.BecomeChild(neighbors[node.positionId][0]);
+                    node.BecomeChild(nodeNeighbors[0]);
 
                     break;
                 }
                 // two neighbors means we go there
                 case 2: {
-                    bool firstIsPartOfPath = node.IsAncestorOrSelf(neighbors[node.positionId][0]);
-                    bool secondIsPartOfPath = node.IsAncestorOrSelf(neighbors[node.positionId][1]);
+                    bool firstIsPartOfPath = node.IsAncestorOrSelf(nodeNeighbors[0]);
+                    bool secondIsPartOfPath = node.IsAncestorOrSelf(nodeNeighbors[1]);
 
                     if (firstIsPartOfPath == secondIsPartOfPath) {
                         // dead end
@@ -139,19 +141,18 @@ sealed class Runtime {
                         return;
                     }
 
-                    int neighborId = neighbors[node.positionId][firstIsPartOfPath ? 1 : 0];
+                    int neighborId = nodeNeighbors[firstIsPartOfPath ? 1 : 0];
 
                     node.BecomeChild(neighborId);
 
                     break;
                 }
                 default: {
-                    int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
                     int newNeighborSize = 0;
 
-                    foreach (int neighborId in neighbors[node.positionId]) {
+                    foreach (int neighborId in nodeNeighbors) {
                         if (!node.IsAncestorOrSelf(neighborId)) {
-                            newNeighbors[newNeighborSize++] = neighborId;
+                            pool.tempNeighbors[newNeighborSize++] = neighborId;
                         }
                     }
 
@@ -159,21 +160,19 @@ sealed class Runtime {
                         case 0:
                             // dead end
                             pool.Return(node);
-                            ArrayPool<int>.Shared.Return(newNeighbors);
                             return;
                         case 1:
-                            node.BecomeChild(newNeighbors[0]);
+                            node.BecomeChild(pool.tempNeighbors[0]);
                             break;
                         default:
                             while (newNeighborSize > 0) {
-                                int neighborId = newNeighbors[--newNeighborSize];
+                                int neighborId = pool.tempNeighbors[--newNeighborSize];
                                 var child = newNeighborSize == 0
                                     ? node.BecomeChild(neighborId)
                                     : pool.Rent().Init(neighborId, node);
                                 process(child);
                             }
 
-                            ArrayPool<int>.Shared.Return(newNeighbors);
                             return;
                     }
 
@@ -200,6 +199,8 @@ sealed class NodePool {
     internal void Return(Node node) {
         pool.Push(node);
     }
+
+    internal readonly int[] tempNeighbors = new int[4];
 }
 
 sealed class Node {
