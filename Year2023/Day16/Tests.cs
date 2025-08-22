@@ -6,12 +6,14 @@ namespace Day16;
 [TestFixture(TestOf = typeof(Runtime))]
 public class Tests {
     [TestCase("example-1.txt", 46)]
+    [TestCase("input.txt", 8098)]
     public void Test_Runtime_NumberOfEnergizedTiles(string file, int expected) {
         var sut = new Runtime(file);
 
         Assert.That(sut.numberOfEnergizedTiles, Is.EqualTo(expected));
     }
     [TestCase("example-1.txt", 51)]
+    [TestCase("input.txt", 8335)]
     public void Test_Runtime_MaximumNumberOfEnergizedTiles(string file, int expected) {
         var sut = new Runtime(file);
 

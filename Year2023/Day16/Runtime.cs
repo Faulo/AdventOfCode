@@ -42,6 +42,13 @@ sealed class Runtime(string file) {
         }
     }
 
+    static readonly (Directions, Vector2Int)[] directions = [
+        (Directions.Up,  Vector2Int.up),
+        (Directions.Down,  Vector2Int.down),
+        (Directions.Left,  Vector2Int.left),
+        (Directions.Right,  Vector2Int.right),
+    ];
+
     void Move(Directions[,] energized, Vector2Int position, Directions direction) {
         if (!map.IsInBounds(position)) {
             return;
@@ -55,20 +62,15 @@ sealed class Runtime(string file) {
 
         var next = map[position].GetDirections(direction);
 
-        if (next.HasFlag(Directions.Up)) {
-            Move(energized, position + Vector2Int.up, Directions.Up);
-        }
+        foreach (var (nextDirection, offset) in directions) {
+            if (next.HasFlag(nextDirection)) {
+                var nextPosition = position + offset;
+                for (; map.IsInBounds(nextPosition) && map[nextPosition].GetDirections(nextDirection).HasFlag(nextDirection); nextPosition += offset) {
+                    energized[nextPosition.x, nextPosition.y] |= nextDirection;
+                }
 
-        if (next.HasFlag(Directions.Down)) {
-            Move(energized, position + Vector2Int.down, Directions.Down);
-        }
-
-        if (next.HasFlag(Directions.Left)) {
-            Move(energized, position + Vector2Int.left, Directions.Left);
-        }
-
-        if (next.HasFlag(Directions.Right)) {
-            Move(energized, position + Vector2Int.right, Directions.Right);
+                Move(energized, nextPosition, nextDirection);
+            }
         }
     }
 }
