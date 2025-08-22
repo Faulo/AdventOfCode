@@ -160,25 +160,18 @@ sealed class Runtime {
 
                         await foreach (var node in context.channel.Reader.ReadAllAsync()) {
                             context.runtime.ProcessNode(context.pool, node, async child => await context.channel.Writer.WriteAsync(child), ref count);
+                            if (!context.pool.hasRentedNodes) {
+                                context.channel.Writer.Complete();
+                            }
                         }
 
                         return count;
                     }
 
-                    var tasks = Enumerable
-                        .Range(0, threadCount)
-                        .Select(i => work(context, i))
-                        .ToArray();
-
-                    while (pool.hasRentedNodes) {
-                        Thread.Sleep(10);
-                    }
-
-                    context.channel.Writer.Complete();
-
-                    count = tasks
-                        .Select(t => t.Result)
-                        .Max();
+                    count = Task
+                        .WhenAll(Enumerable.Range(0, threadCount).Select(i => work(context, i)))
+                        .Result
+                        .Max(count => count);
 
                     break;
                 }
@@ -269,7 +262,7 @@ sealed class Runtime {
 sealed class NodePool {
     readonly ConcurrentStack<Node> pool = new();
 
-    internal int rentedCount = 0;
+    int rentedCount = 0;
 
     internal bool hasRentedNodes => rentedCount > 0;
 
