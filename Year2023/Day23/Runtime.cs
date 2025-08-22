@@ -156,31 +156,26 @@ sealed class Runtime {
                         }
                     }
 
-                    switch (newNeighborSize) {
-                        case 0:
-                            // dead end
-                            pool.Return(node);
-                            return;
-                        case 1:
-                            node.BecomeChild(pool.tempNeighbors[0]);
-                            break;
-                        default:
-                            while (newNeighborSize > 0) {
-                                int neighborId = pool.tempNeighbors[--newNeighborSize];
-                                var child = newNeighborSize == 0
-                                    ? node.BecomeChild(neighborId)
-                                    : pool.Rent().Init(neighborId, node);
-                                process(child);
-                            }
-
-                            return;
+                    if (newNeighborSize == 0) {
+                        // dead end
+                        pool.Return(node);
+                        return;
                     }
+
+                    while (newNeighborSize > 1) {
+                        int neighborId = pool.tempNeighbors[--newNeighborSize];
+                        var child = pool.Rent().Init(neighborId, node);
+                        process(child);
+                    }
+
+                    node.BecomeChild(pool.tempNeighbors[0]);
 
                     break;
                 }
             }
         }
 
+        // goal reached!
         if (count < node.ancestorCount) {
             count = node.ancestorCount;
         }
