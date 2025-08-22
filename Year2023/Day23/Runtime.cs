@@ -82,7 +82,9 @@ sealed class Runtime {
                     }
                 }
 
-                count = queue.AsParallel()
+                count = queue
+                    .AsParallel()
+                    .WithDegreeOfParallelism(Environment.ProcessorCount)
                     .Select(seedNode => {
                         var pool = new NodePool();
                         var queue = new Stack<Node>();
