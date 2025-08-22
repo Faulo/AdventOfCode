@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Utilities;
 
@@ -64,16 +63,20 @@ sealed class Runtime {
     internal int maximumNumberOfSteps {
         get {
             int count = 0;
+            var pool = new NodePool();
+            var startNode = pool
+                .Rent()
+                .Init(positions[start]);
 
             if (useMultithreading) {
                 int seedCount = 8 * Environment.ProcessorCount;
 
                 var queue = new Queue<Node>();
 
-                queue.Enqueue(Node.Rent().Init(positions[start]));
+                queue.Enqueue(startNode);
 
                 while (queue.TryDequeue(out var node)) {
-                    ProcessNode(node, queue.Enqueue, ref count);
+                    ProcessNode(pool, node, queue.Enqueue, ref count);
                     if (queue.Count >= seedCount) {
                         break;
                     }
@@ -81,6 +84,7 @@ sealed class Runtime {
 
                 count = queue.AsParallel()
                     .Select(seedNode => {
+                        var pool = new NodePool();
                         var queue = new Stack<Node>();
 
                         queue.Push(seedNode);
@@ -88,7 +92,7 @@ sealed class Runtime {
                         int count = 0;
 
                         while (queue.TryPop(out var node)) {
-                            ProcessNode(node, queue.Push, ref count);
+                            ProcessNode(pool, node, queue.Push, ref count);
                         }
 
                         return count;
@@ -98,10 +102,10 @@ sealed class Runtime {
             } else {
                 var queue = new Stack<Node>();
 
-                queue.Push(Node.Rent().Init(positions[start]));
+                queue.Push(startNode);
 
                 while (queue.TryPop(out var node)) {
-                    ProcessNode(node, queue.Push, ref count);
+                    ProcessNode(pool, node, queue.Push, ref count);
                 }
             }
 
@@ -109,74 +113,96 @@ sealed class Runtime {
         }
     }
 
-    void ProcessNode(Node node, Action<Node> process, ref int count) {
-        while (neighbors[node.positionId].Length == 2) {
-            bool firstIsAncesor = node.IsAncestorOrSelf(neighbors[node.positionId][0]);
-            bool secondIsAncesor = node.IsAncestorOrSelf(neighbors[node.positionId][1]);
-
-            if (firstIsAncesor == secondIsAncesor) {
-                // dead end
-                Node.Return(node);
-                return;
-            }
-
-            int neighborId = neighbors[node.positionId][firstIsAncesor ? 1 : 0];
-
-            if (neighborId == goalId) {
-                if (count < node.ancestorCount) {
-                    count = node.ancestorCount;
-                }
-
-                return;
-            } else {
-                node.BecomeChild(neighborId);
-            }
-        }
-
-        int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
-        int newNeighborSize = 0;
-
-        foreach (int neighborId in neighbors[node.positionId]) {
-            if (!node.IsAncestorOrSelf(neighborId)) {
-                if (neighborId == goalId) {
-                    if (count < node.ancestorCount) {
-                        count = node.ancestorCount;
+    void ProcessNode(NodePool pool, Node node, Action<Node> process, ref int count) {
+        while (node.positionId != goalId) {
+            switch (neighbors[node.positionId].Length) {
+                // exactly one neighbor means we go there
+                case 1: {
+                    if (node.IsAncestorOrSelf(neighbors[node.positionId][0])) {
+                        // dead end
+                        pool.Return(node);
+                        return;
                     }
-                } else {
-                    newNeighbors[newNeighborSize++] = neighborId;
+
+                    node.BecomeChild(neighbors[node.positionId][0]);
+
+                    break;
+                }
+                // two neighbors means we go there
+                case 2: {
+                    bool firstIsPartOfPath = node.IsAncestorOrSelf(neighbors[node.positionId][0]);
+                    bool secondIsPartOfPath = node.IsAncestorOrSelf(neighbors[node.positionId][1]);
+
+                    if (firstIsPartOfPath == secondIsPartOfPath) {
+                        // dead end
+                        pool.Return(node);
+                        return;
+                    }
+
+                    int neighborId = neighbors[node.positionId][firstIsPartOfPath ? 1 : 0];
+
+                    node.BecomeChild(neighborId);
+
+                    break;
+                }
+                default: {
+                    int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
+                    int newNeighborSize = 0;
+
+                    foreach (int neighborId in neighbors[node.positionId]) {
+                        if (!node.IsAncestorOrSelf(neighborId)) {
+                            newNeighbors[newNeighborSize++] = neighborId;
+                        }
+                    }
+
+                    switch (newNeighborSize) {
+                        case 0:
+                            // dead end
+                            pool.Return(node);
+                            ArrayPool<int>.Shared.Return(newNeighbors);
+                            return;
+                        case 1:
+                            node.BecomeChild(newNeighbors[0]);
+                            break;
+                        default:
+                            while (newNeighborSize > 0) {
+                                int neighborId = newNeighbors[--newNeighborSize];
+                                var child = newNeighborSize == 0
+                                    ? node.BecomeChild(neighborId)
+                                    : pool.Rent().Init(neighborId, node);
+                                process(child);
+                            }
+
+                            ArrayPool<int>.Shared.Return(newNeighbors);
+                            return;
+                    }
+
+                    break;
                 }
             }
         }
 
-        if (newNeighborSize == 0) {
-            Node.Return(node);
-        } else {
-            while (newNeighborSize > 0) {
-                int neighborId = newNeighbors[--newNeighborSize];
-                var child = newNeighborSize == 0
-                    ? node.BecomeChild(neighborId)
-                    : node.CreateChild(neighborId);
-                process(child);
-            }
+        if (count < node.ancestorCount) {
+            count = node.ancestorCount;
         }
-
-        ArrayPool<int>.Shared.Return(newNeighbors);
     }
 }
 
-sealed class Node {
-    static readonly ConcurrentStack<Node> pool = new();
+sealed class NodePool {
+    readonly Stack<Node> pool = new();
 
-    internal static Node Rent() {
+    internal Node Rent() {
         return pool.TryPop(out var node)
             ? node
             : new Node();
     }
 
-    internal static void Return(Node node) {
+    internal void Return(Node node) {
         pool.Push(node);
     }
+}
 
+sealed class Node {
     internal static int positionIdSize {
         set {
 #if USE_LONG
@@ -184,7 +210,6 @@ sealed class Node {
 #else
             pathMaxSize = value;
 #endif
-            pool.Clear();
         }
     }
     static int pathMaxSize;
@@ -236,7 +261,7 @@ sealed class Node {
     internal Node Init(int positionId) {
         this.positionId = positionId;
 
-        ancestorCount = 1;
+        ancestorCount = 0;
 
         SetPath(positionId);
 
@@ -260,10 +285,6 @@ sealed class Node {
         ancestorCount++;
         SetPath(positionId);
         return this;
-    }
-
-    internal Node CreateChild(int positionId) {
-        return Rent().Init(positionId, this);
     }
 
     internal bool IsAncestorOrSelf(int positionId) {
