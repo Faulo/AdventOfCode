@@ -1,9 +1,13 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using Utilities;
 
 namespace Day23;
 
 sealed class Runtime {
+    static readonly bool useMultithreading = true;
+
     internal int maximumNumberOfSteps {
         get {
             var positions = new Dictionary<Vector2Int, int>();
@@ -16,7 +20,7 @@ sealed class Runtime {
 
             int goalId = positions[goal];
 
-            var neighbors = map
+            int[][] neighbors = [.. map
                 .allPositionsAndCharactersWithin
                 .Where(tile => tile.character.IsFree())
                 .Select(tile => tile.character
@@ -25,40 +29,79 @@ sealed class Runtime {
                     .Where(map.IsInBounds)
                     .Where(p => map[p].IsFree())
                     .Select(p => positions[p])
-                    .ToArray())
-                .ToArray()
-                .AsSpan();
+                    .ToArray())];
 
             int count = 0;
 
-            var queue = new Stack<Node>();
+            if (useMultithreading) {
+                bool preferLocal = false;
 
-            queue.Push(Node.Rent().Init(positions[start]));
+                void processNode(Node node) {
+                    int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
+                    int newNeighborSize = 0;
 
-            var newNeighbors = new int[4].AsSpan();
-            int newNeighborSize = 0;
-            while (queue.TryPop(out var node)) {
-                foreach (int neighborId in neighbors[node.positionId]) {
-                    if (!node.IsAncestorOrSelf(neighborId)) {
-                        if (neighborId == goalId) {
-                            if (count < node.ancestorCount) {
-                                count = node.ancestorCount;
+                    foreach (int neighborId in neighbors[node.positionId]) {
+                        if (!node.IsAncestorOrSelf(neighborId)) {
+                            if (neighborId == goalId) {
+                                if (count < node.ancestorCount) {
+                                    count = node.ancestorCount;
+                                }
+                            } else {
+                                newNeighbors[newNeighborSize++] = neighborId;
                             }
-                        } else {
-                            newNeighbors[newNeighborSize++] = neighborId;
                         }
                     }
+
+                    if (newNeighborSize == 0) {
+                        Node.Return(node);
+                    } else {
+                        while (newNeighborSize > 0) {
+                            int neighborId = newNeighbors[--newNeighborSize];
+                            var child = newNeighborSize == 0
+                                ? node.BecomeChild(neighborId)
+                                : node.CreateChild(neighborId);
+                            ThreadPool.QueueUserWorkItem(processNode, child, preferLocal);
+                        }
+                    }
+
+                    ArrayPool<int>.Shared.Return(newNeighbors);
                 }
 
-                if (newNeighborSize == 0) {
-                    Node.Return(node);
-                } else {
-                    while (newNeighborSize > 0) {
-                        int neighborId = newNeighbors[--newNeighborSize];
-                        var child = newNeighborSize == 0
-                            ? node.BecomeChild(neighborId)
-                            : node.CreateChild(neighborId);
-                        queue.Push(child);
+                ThreadPool.QueueUserWorkItem(processNode, Node.Rent().Init(positions[start]), preferLocal);
+
+                while (ThreadPool.PendingWorkItemCount > 0) {
+                    Thread.Sleep(10);
+                }
+            } else {
+                var queue = new Stack<Node>();
+
+                queue.Push(Node.Rent().Init(positions[start]));
+
+                var newNeighbors = new int[4].AsSpan();
+                int newNeighborSize = 0;
+                while (queue.TryPop(out var node)) {
+                    foreach (int neighborId in neighbors[node.positionId]) {
+                        if (!node.IsAncestorOrSelf(neighborId)) {
+                            if (neighborId == goalId) {
+                                if (count < node.ancestorCount) {
+                                    count = node.ancestorCount;
+                                }
+                            } else {
+                                newNeighbors[newNeighborSize++] = neighborId;
+                            }
+                        }
+                    }
+
+                    if (newNeighborSize == 0) {
+                        Node.Return(node);
+                    } else {
+                        while (newNeighborSize > 0) {
+                            int neighborId = newNeighbors[--newNeighborSize];
+                            var child = newNeighborSize == 0
+                                ? node.BecomeChild(neighborId)
+                                : node.CreateChild(neighborId);
+                            queue.Push(child);
+                        }
                     }
                 }
             }
@@ -95,11 +138,11 @@ sealed class Runtime {
 }
 
 sealed class Node {
-    static readonly Stack<Node> pool = new();
+    static readonly ConcurrentStack<Node> pool = new();
 
     internal static Node Rent() {
-        return pool.Count > 0
-            ? pool.Pop()
+        return pool.TryPop(out var node)
+            ? node
             : new Node();
     }
 
