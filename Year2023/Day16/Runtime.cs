@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using Utilities;
 
 namespace Day16;
@@ -49,12 +50,13 @@ sealed class Runtime(string file) {
         (Directions.Right,  Vector2Int.right),
     ];
 
-    void Move(Directions[,] energized, Vector2Int position, Directions direction) {
-        if (!map.IsInBounds(position)) {
-            return;
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    bool ShouldMove(in Directions[,] energized, in Vector2Int position, in Directions direction) {
+        return map.IsInBounds(position) && !energized[position.x, position.y].HasFlag(direction);
+    }
 
-        if (energized[position.x, position.y].HasFlag(direction)) {
+    void Move(Directions[,] energized, Vector2Int position, Directions direction) {
+        if (!ShouldMove(energized, position, direction)) {
             return;
         }
 
@@ -65,7 +67,7 @@ sealed class Runtime(string file) {
         foreach (var (nextDirection, offset) in directions) {
             if (next.HasFlag(nextDirection)) {
                 var nextPosition = position + offset;
-                for (; map.IsInBounds(nextPosition) && map[nextPosition].GetDirections(nextDirection).HasFlag(nextDirection); nextPosition += offset) {
+                for (; ShouldMove(energized, position, direction) && map[nextPosition].GetDirections(nextDirection).HasFlag(nextDirection); nextPosition += offset) {
                     energized[nextPosition.x, nextPosition.y] |= nextDirection;
                 }
 
@@ -76,6 +78,7 @@ sealed class Runtime(string file) {
 }
 
 static class Extensions {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Directions GetDirections(this char tile, Directions source) {
         return tile switch {
             '.' => source,
