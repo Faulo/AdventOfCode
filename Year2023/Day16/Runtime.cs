@@ -67,7 +67,7 @@ sealed class Runtime(string file) {
         foreach (var (nextDirection, offset) in directions) {
             if (next.HasFlag(nextDirection)) {
                 var nextPosition = position + offset;
-                for (; ShouldMove(energized, position, direction) && map[nextPosition].GetDirections(nextDirection).HasFlag(nextDirection); nextPosition += offset) {
+                for (; ShouldMove(energized, nextPosition, nextDirection) && map[nextPosition].IsStraight(nextDirection); nextPosition += offset) {
                     energized[nextPosition.x, nextPosition.y] |= nextDirection;
                 }
 
@@ -79,19 +79,23 @@ sealed class Runtime(string file) {
 
 static class Extensions {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsStraight(this char tile, Directions direction) {
+        return tile switch {
+            '.' => true,
+            '-' => direction is Directions.Left or Directions.Right,
+            '|' => direction is Directions.Up or Directions.Down,
+            _ => false
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Directions GetDirections(this char tile, Directions source) {
         return tile switch {
             '.' => source,
-            '-' => source switch {
-                Directions.Up => Directions.Left | Directions.Right,
-                Directions.Down => Directions.Left | Directions.Right,
-                _ => source,
-            },
-            '|' => source switch {
-                Directions.Left => Directions.Up | Directions.Down,
-                Directions.Right => Directions.Up | Directions.Down,
-                _ => source,
-            },
+            '-' when source is Directions.Up or Directions.Down => Directions.Left | Directions.Right,
+            '-' => source,
+            '|' when source is Directions.Left or Directions.Right => Directions.Up | Directions.Down,
+            '|' => source,
             '\\' => source switch {
                 Directions.Up => Directions.Left,
                 Directions.Down => Directions.Right,
