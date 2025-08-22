@@ -43,138 +43,90 @@ sealed class Runtime {
 
     internal int maximumNumberOfSteps {
         get {
-            var positions = new Dictionary<Vector2Int, int>();
-            int i = 0;
-            foreach (var (position, _) in map.allPositionsAndCharactersWithin.Where(tile => tile.character.IsFree())) {
-                positions[position] = i++;
-            }
-
-            Node.positionIdSize = i;
-
-            int goalId = positions[goal];
-
-            int[][] neighbors = [.. map
-                .allPositionsAndCharactersWithin
-                .Where(tile => tile.character.IsFree())
-                .Select(tile => tile.character
-                    .GetNeighbors()
-                    .Select(offset => offset + tile.position)
-                    .Where(map.IsInBounds)
-                    .Where(p => map[p].IsFree())
-                    .Select(p => positions[p])
-                    .ToArray())];
+            int count = 0;
 
             if (useMultithreading) {
-                static void process(object? arg) {
-                    if (arg is not TaskContext context) {
-                        return;
+                int seedCount = 8 * Environment.ProcessorCount;
+
+                var queue = new Queue<Node>();
+
+                queue.Enqueue(Node.Rent().Init(positions[start]));
+
+                while (queue.TryDequeue(out var node)) {
+                    ProcessNode(node, queue.Enqueue, ref count);
+                    if (queue.Count >= seedCount) {
+                        break;
                     }
+                }
 
-                    int reset = context.newWorkId;
+                count = queue.AsParallel()
+                    .Select(seedNode => {
+                        var queue = new Stack<Node>();
 
-                    int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
-                    int newNeighborSize = 0;
+                        queue.Push(seedNode);
 
-                    while (!context.cancellation.IsCancellationRequested) {
-                        if (context.queue.TryPop(out var node)) {
-                            context.SetIsWorking(reset);
+                        int count = 0;
 
-                            foreach (int neighborId in context.neighbors[node.positionId]) {
-                                if (!node.IsAncestorOrSelf(neighborId)) {
-                                    if (neighborId == context.goalId) {
-                                        lock (context) {
-                                            if (context.count < node.ancestorCount) {
-                                                context.count = node.ancestorCount;
-                                            }
-                                        }
-                                    } else {
-                                        newNeighbors[newNeighborSize++] = neighborId;
-                                    }
-                                }
-                            }
-
-                            if (newNeighborSize == 0) {
-                                Node.Return(node);
-                            } else {
-                                while (newNeighborSize > 0) {
-                                    int neighborId = newNeighbors[--newNeighborSize];
-                                    var child = newNeighborSize == 0
-                                        ? node.BecomeChild(neighborId)
-                                        : node.CreateChild(neighborId);
-                                    context.queue.Push(child);
-                                }
-                            }
-
-                            context.ClearIsWorking(reset);
-                        } else {
-                            Thread.Sleep(1);
+                        while (queue.TryPop(out var node)) {
+                            ProcessNode(node, queue.Push, ref count);
                         }
-                    }
 
-                    ArrayPool<int>.Shared.Return(newNeighbors);
-                }
-
-                int threadCount = Environment.ProcessorCount;
-                var context = new TaskContext {
-                    goalId = goalId,
-                    neighbors = neighbors,
-                };
-                context.queue.Push(Node.Rent().Init(positions[start]));
-
-                var tasks = Enumerable.Range(0, threadCount)
-                    .Select(i => Task.Factory.StartNew(process, context))
-                    .ToArray();
-
-                while (!context.queue.IsEmpty || context.isWorking) {
-                    Thread.Sleep(100);
-                }
-
-                context.cancellation.Cancel();
-
-                return context.count;
+                        return count;
+                    })
+                    .Append(count)
+                    .Max();
             } else {
-                int count = 0;
-
                 var queue = new Stack<Node>();
 
                 queue.Push(Node.Rent().Init(positions[start]));
 
-                var newNeighbors = new int[4].AsSpan();
-                int newNeighborSize = 0;
                 while (queue.TryPop(out var node)) {
-                    foreach (int neighborId in neighbors[node.positionId]) {
-                        if (!node.IsAncestorOrSelf(neighborId)) {
-                            if (neighborId == goalId) {
-                                if (count < node.ancestorCount) {
-                                    count = node.ancestorCount;
-                                }
-                            } else {
-                                newNeighbors[newNeighborSize++] = neighborId;
-                            }
-                        }
-                    }
-
-                    if (newNeighborSize == 0) {
-                        Node.Return(node);
-                    } else {
-                        while (newNeighborSize > 0) {
-                            int neighborId = newNeighbors[--newNeighborSize];
-                            var child = newNeighborSize == 0
-                                ? node.BecomeChild(neighborId)
-                                : node.CreateChild(neighborId);
-                            queue.Push(child);
-                        }
-                    }
+                    ProcessNode(node, queue.Push, ref count);
                 }
+            }
 
-                return count;
+            return count;
+        }
+    }
+
+    void ProcessNode(Node node, Action<Node> process, ref int count) {
+        int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
+        int newNeighborSize = 0;
+
+        foreach (int neighborId in neighbors[node.positionId]) {
+            if (!node.IsAncestorOrSelf(neighborId)) {
+                if (neighborId == goalId) {
+                    if (count < node.ancestorCount) {
+                        count = node.ancestorCount;
+                    }
+                } else {
+                    newNeighbors[newNeighborSize++] = neighborId;
+                }
             }
         }
+
+        if (newNeighborSize == 0) {
+            Node.Return(node);
+        } else {
+            while (newNeighborSize > 0) {
+                int neighborId = newNeighbors[--newNeighborSize];
+                var child = newNeighborSize == 0
+                    ? node.BecomeChild(neighborId)
+                    : node.CreateChild(neighborId);
+                process(child);
+            }
+        }
+
+        ArrayPool<int>.Shared.Return(newNeighbors);
     }
 
     readonly CharacterMap map;
     internal readonly Vector2Int start;
     internal readonly Vector2Int goal;
+
+    readonly Dictionary<Vector2Int, int> positions;
+    readonly int goalId;
+    readonly int[][] neighbors;
 
     internal Runtime(string file, bool replaceSlopes = false) {
         map = new FileInput(file).ReadAllAsCharacterMap();
@@ -196,6 +148,29 @@ sealed class Runtime {
             .allPositionsAndCharactersWithin
             .Last(tile => tile.character.IsFree())
             .position;
+
+        positions = [];
+        int i = 0;
+        foreach (var (position, _) in map.allPositionsAndCharactersWithin.Where(tile => tile.character.IsFree())) {
+            positions[position] = i++;
+        }
+
+        Node.positionIdSize = i;
+
+        goalId = positions[goal];
+
+        neighbors = [.. map
+            .allPositionsAndCharactersWithin
+            .Where(tile => tile.character.IsFree())
+            .Select(tile => tile.character
+                .GetNeighbors()
+                .Select(offset => offset + tile.position)
+                .Where(map.IsInBounds)
+                .Where(p => map[p].IsFree())
+                .Select(p => positions[p])
+                .ToArray()
+            )
+        ];
     }
 }
 
