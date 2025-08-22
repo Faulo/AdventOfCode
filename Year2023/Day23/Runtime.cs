@@ -11,10 +11,11 @@ sealed class Runtime {
         SingleThreadedStack,
         SingleThreadedRecursion,
         PLINQ,
-        Tasks
+        TasksWithChannel,
+        TasksWithStack,
     }
 
-    static readonly ThreadingMode threading = ThreadingMode.Tasks;
+    static readonly ThreadingMode threading = ThreadingMode.TasksWithStack;
 
     sealed class TaskContext {
         internal readonly Channel<Node> channel = Channel.CreateUnbounded<Node>(
@@ -24,6 +25,8 @@ sealed class Runtime {
                 AllowSynchronousContinuations = false,
             }
         );
+        internal readonly ConcurrentStack<Node> queue = new();
+        internal bool isDone;
 
         internal required Runtime runtime;
         internal required NodePool pool;
@@ -144,24 +147,59 @@ sealed class Runtime {
 
                     break;
                 }
-                case ThreadingMode.Tasks: {
+                case ThreadingMode.TasksWithChannel: {
                     int threadCount = Environment.ProcessorCount;
 
                     var context = new TaskContext {
                         runtime = this,
                         pool = pool,
                     };
+
                     context.channel.Writer.TryWrite(startNode);
 
-                    static async Task<int> work(TaskContext context, int id) {
+                    pool.onReturnLast = () => context.channel.Writer.Complete();
+
+                    static async Task<int> work(TaskContext context) {
                         await Task.Yield();
 
                         int count = 0;
 
                         await foreach (var node in context.channel.Reader.ReadAllAsync()) {
                             context.runtime.ProcessNode(context.pool, node, async child => await context.channel.Writer.WriteAsync(child), ref count);
-                            if (!context.pool.hasRentedNodes) {
-                                context.channel.Writer.Complete();
+                        }
+
+                        return count;
+                    }
+
+                    count = Task
+                        .WhenAll(Enumerable.Range(0, threadCount).Select(_ => work(context)))
+                        .Result
+                        .Max(count => count);
+
+                    break;
+                }
+                case ThreadingMode.TasksWithStack: {
+                    int threadCount = Environment.ProcessorCount;
+
+                    var context = new TaskContext {
+                        runtime = this,
+                        pool = pool,
+                    };
+
+                    context.queue.Push(startNode);
+
+                    pool.onReturnLast = () => context.isDone = true;
+
+                    static async Task<int> work(TaskContext context) {
+                        await Task.Yield();
+
+                        int count = 0;
+
+                        while (!context.isDone) {
+                            if (context.queue.TryPop(out var node)) {
+                                context.runtime.ProcessNode(context.pool, node, context.queue.Push, ref count);
+                            } else {
+                                await Task.Yield();
                             }
                         }
 
@@ -169,7 +207,7 @@ sealed class Runtime {
                     }
 
                     count = Task
-                        .WhenAll(Enumerable.Range(0, threadCount).Select(i => work(context, i)))
+                        .WhenAll(Enumerable.Range(0, threadCount).Select(_ => work(context)))
                         .Result
                         .Max(count => count);
 
@@ -262,6 +300,8 @@ sealed class Runtime {
 sealed class NodePool {
     readonly ConcurrentStack<Node> pool = new();
 
+    internal Action? onReturnLast;
+
     int rentedCount = 0;
 
     internal bool hasRentedNodes => rentedCount > 0;
@@ -275,7 +315,12 @@ sealed class NodePool {
 
     internal void Return(Node node) {
         pool.Push(node);
-        Interlocked.Decrement(ref rentedCount);
+        if (Interlocked.Decrement(ref rentedCount) == 0) {
+            if (onReturnLast is not null) {
+                onReturnLast();
+                onReturnLast = null;
+            }
+        }
     }
 }
 
