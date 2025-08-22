@@ -203,7 +203,7 @@ sealed class Node {
 
 static class Extensions {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsFree(this char character) => character != '#';
+    internal static bool IsFree(this char character) => character is not '#';
 
     internal static Vector2Int[] GetNeighbors(this char character) => character switch {
         '.' => _all4,
