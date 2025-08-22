@@ -8,6 +8,14 @@ namespace Day23;
 sealed class Runtime {
     static readonly bool useMultithreading = true;
 
+    sealed class TaskContext {
+        internal int count;
+        internal required int goalId;
+        internal readonly ConcurrentStack<Node> queue = new();
+        internal required int[][] neighbors;
+        internal readonly CancellationTokenSource cancellation = new();
+    }
+
     internal int maximumNumberOfSteps {
         get {
             var positions = new Dictionary<Vector2Int, int>();
@@ -34,44 +42,69 @@ sealed class Runtime {
             int count = 0;
 
             if (useMultithreading) {
-                bool preferLocal = false;
+                static void process(object? arg) {
+                    if (arg is not TaskContext context) {
+                        return;
+                    }
 
-                void processNode(Node node) {
                     int[] newNeighbors = ArrayPool<int>.Shared.Rent(4);
                     int newNeighborSize = 0;
 
-                    foreach (int neighborId in neighbors[node.positionId]) {
-                        if (!node.IsAncestorOrSelf(neighborId)) {
-                            if (neighborId == goalId) {
-                                if (count < node.ancestorCount) {
-                                    count = node.ancestorCount;
+                    while (!context.cancellation.IsCancellationRequested) {
+                        if (context.queue.TryPop(out var node)) {
+                            foreach (int neighborId in context.neighbors[node.positionId]) {
+                                if (!node.IsAncestorOrSelf(neighborId)) {
+                                    if (neighborId == context.goalId) {
+                                        lock (context) {
+                                            if (context.count < node.ancestorCount) {
+                                                context.count = node.ancestorCount;
+                                            }
+                                        }
+                                    } else {
+                                        newNeighbors[newNeighborSize++] = neighborId;
+                                    }
                                 }
-                            } else {
-                                newNeighbors[newNeighborSize++] = neighborId;
                             }
-                        }
-                    }
 
-                    if (newNeighborSize == 0) {
-                        Node.Return(node);
-                    } else {
-                        while (newNeighborSize > 0) {
-                            int neighborId = newNeighbors[--newNeighborSize];
-                            var child = newNeighborSize == 0
-                                ? node.BecomeChild(neighborId)
-                                : node.CreateChild(neighborId);
-                            ThreadPool.QueueUserWorkItem(processNode, child, preferLocal);
+                            if (newNeighborSize == 0) {
+                                Node.Return(node);
+                            } else {
+                                while (newNeighborSize > 0) {
+                                    int neighborId = newNeighbors[--newNeighborSize];
+                                    var child = newNeighborSize == 0
+                                        ? node.BecomeChild(neighborId)
+                                        : node.CreateChild(neighborId);
+                                    context.queue.Push(child);
+                                }
+                            }
+                        } else {
+                            Thread.Sleep(10);
                         }
                     }
 
                     ArrayPool<int>.Shared.Return(newNeighbors);
                 }
 
-                ThreadPool.QueueUserWorkItem(processNode, Node.Rent().Init(positions[start]), preferLocal);
+                int threadCount = Environment.ProcessorCount;
+                var context = new TaskContext {
+                    goalId = goalId,
+                    neighbors = neighbors,
+                };
+                context.queue.Push(Node.Rent().Init(positions[start]));
 
-                while (ThreadPool.PendingWorkItemCount > 0) {
-                    Thread.Sleep(10);
+                var tasks = Enumerable.Range(0, threadCount)
+                    .Select(i => Task.Factory.StartNew(process, context))
+                    .ToArray();
+
+                while (Node.hasRentedNodes) {
+                    Thread.Sleep(100);
                 }
+
+                count = context.count;
+
+                context.cancellation.Cancel();
+
+                Task.WaitAll(tasks);
             } else {
                 var queue = new Stack<Node>();
 
@@ -139,14 +172,25 @@ sealed class Runtime {
 
 sealed class Node {
     static readonly ConcurrentStack<Node> pool = new();
+    static int rentedNodeCount = 0;
+
+    internal static bool hasRentedNodes => rentedNodeCount > 0;
 
     internal static Node Rent() {
+        lock (pool) {
+            rentedNodeCount++;
+        }
+
         return pool.TryPop(out var node)
             ? node
             : new Node();
     }
 
     internal static void Return(Node node) {
+        lock (pool) {
+            rentedNodeCount--;
+        }
+
         pool.Push(node);
     }
 
@@ -158,6 +202,7 @@ sealed class Node {
             pathMaxSize = value;
 #endif
             pool.Clear();
+            rentedNodeCount = 0;
         }
     }
     static int pathMaxSize;
