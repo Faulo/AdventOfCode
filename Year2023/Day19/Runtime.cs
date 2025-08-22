@@ -205,7 +205,7 @@ readonly struct Part(int x, int m, int a, int s) {
             case 's':
                 s = value;
                 break;
-        };
+        }
 
         return new(x, m, a, s);
     }
