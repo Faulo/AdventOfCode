@@ -1,52 +1,60 @@
-﻿using System.Text.RegularExpressions;
-using Utilities;
+﻿using Utilities;
 
 namespace Day01;
 
 sealed partial class Runtime {
-    internal readonly List<int> left = [];
-    internal readonly List<int> right = [];
-
-    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
-    private static partial Regex NumberExpression();
+    readonly List<(int direction, int amount)> instructions = [];
 
     internal Runtime(string file) {
         foreach (string line in new FileInput(file).ReadLines()) {
-            var matches = NumberExpression().Matches(line);
-            left.Add(int.Parse(matches[0].Value));
-            right.Add(int.Parse(matches[1].Value));
+            int direction = line[0] switch {
+                'L' => -1,
+                'R' => 1,
+                _ => 0,
+            };
+
+            if (direction != 0) {
+                int amount = int.Parse(line[1..]);
+                instructions.Add((direction, amount));
+            }
         }
     }
 
-    internal static int Delta(int left, int right) => Math.Abs(left - right);
-
-    internal int totalDistance {
+    IEnumerable<int> dial {
         get {
-            int sum = 0;
+            int current = 50;
+            foreach ((int direction, int amount) in instructions) {
+                current += amount * direction;
+                while (current < 0) {
+                    current += 100;
+                }
 
-            while (left.Count > 0) {
-                int leftMin = left.Min();
-                left.Remove(leftMin);
-                int rightMin = right.Min();
-                right.Remove(rightMin);
+                while (current >= 100) {
+                    current -= 100;
+                }
 
-                sum += Delta(leftMin, rightMin);
+                yield return current;
             }
-
-            return sum;
         }
     }
 
-    internal int similarityScore {
-        get {
-            int sum = 0;
+    internal int dialZeroCount => dial
+        .Count(d => d == 0);
 
-            foreach (int number in left) {
-                int count = right.Count(n => n == number);
-                sum += number * count;
+    internal int passZeroCount {
+        get {
+            int count = 0;
+            int current = 50;
+            foreach ((int direction, int amount) in instructions) {
+                for (int i = 0; i < amount; i++) {
+                    current += direction;
+                    if (current % 100 == 0) {
+                        count++;
+                    }
+                }
             }
 
-            return sum;
+            return count;
         }
     }
 }

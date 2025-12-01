@@ -1,10 +1,9 @@
 ﻿using Day01;
 
-Console.WriteLine($"{nameof(Runtime.totalDistance)}: {new Runtime("example-1.txt").totalDistance}");
+Console.WriteLine($"{nameof(Runtime.dialZeroCount)}: {new Runtime("example.txt").dialZeroCount}");
 
-Console.WriteLine($"{nameof(Runtime.totalDistance)}: {new Runtime("input.txt").totalDistance}");
+Console.WriteLine($"{nameof(Runtime.dialZeroCount)}: {new Runtime("input.txt").dialZeroCount}");
 
-Console.WriteLine($"{nameof(Runtime.similarityScore)}: {new Runtime("example-1.txt").similarityScore}");
+Console.WriteLine($"{nameof(Runtime.passZeroCount)}: {new Runtime("example.txt").passZeroCount}");
 
-Console.WriteLine($"{nameof(Runtime.similarityScore)}: {new Runtime("input.txt").similarityScore}");
-
+Console.WriteLine($"{nameof(Runtime.passZeroCount)}: {new Runtime("input.txt").passZeroCount}");
