@@ -20,6 +20,10 @@ sealed partial class Runtime {
         .SelectMany(range => FindInvalidIds(range.first, range.last))
         .Sum();
 
+    internal long sumOfAllInvalidIds => ranges
+        .SelectMany(range => FindAllInvalidIds(range.first, range.last))
+        .Sum();
+
     internal static IEnumerable<long> FindInvalidIds(long first, long last) {
         for (long i = first; i <= last; i++) {
             int rank = Convert.ToInt32(Math.Ceiling(Math.Log10(i)));
@@ -29,6 +33,33 @@ sealed partial class Runtime {
                 long right = i - (left * multiplier);
                 if (left == right) {
                     yield return i;
+                }
+            }
+        }
+    }
+
+    internal static IEnumerable<long> FindAllInvalidIds(long first, long last) {
+        for (long i = first; i <= last; i++) {
+            string number = i.ToString();
+            int rank = number.Length;
+            for (int r = 1; r <= rank / 2; r++) {
+                if (rank % r != 0) {
+                    continue;
+                }
+
+                string left = number[..r];
+                bool matches = true;
+                for (int j = r; (j + r) <= rank; j += r) {
+                    string right = number[j..(j + r)];
+                    if (left != right) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches) {
+                    yield return i;
+                    break;
                 }
             }
         }
