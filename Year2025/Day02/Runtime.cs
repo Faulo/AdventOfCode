@@ -2,7 +2,7 @@
 
 namespace Day02;
 
-sealed partial class Runtime {
+sealed class Runtime {
     internal readonly List<(long first, long last)> ranges = [];
 
     internal Runtime(string file) {

@@ -2,7 +2,7 @@
 
 namespace Day01;
 
-sealed partial class Runtime {
+sealed class Runtime {
     readonly List<(int direction, int amount)> instructions = [];
 
     internal Runtime(string file) {
