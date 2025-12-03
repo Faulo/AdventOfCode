@@ -11,11 +11,12 @@ sealed partial class Runtime {
         this.count = count;
     }
 
-    internal long totalJoltage => banks
-        .Sum(b => FindHighestJoltage(b, count));
+    internal long totalJoltage => banks.Sum(b => FindHighestJoltage(b, count));
 
-    internal static unsafe long FindHighestJoltage(string bank, int count = 2) {
-        Span<char> digits = stackalloc char[count];
+    const bool USE_STACK = true;
+
+    internal static long FindHighestJoltage(string bank, int count = 2) {
+        Span<char> digits = USE_STACK ? stackalloc char[count] : new char[count];
         int start = 0;
         for (int c = 0; c < count; c++) {
             digits[c] = '0';
