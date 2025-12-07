@@ -1,8 +1,8 @@
 ﻿using Day07;
 
-Console.WriteLine($"{nameof(Runtime.freshIngredients)}: {new Runtime("example.txt").freshIngredients}");
+Console.WriteLine($"{nameof(Runtime.splitCount)}: {new Runtime("example.txt").splitCount}");
 
-Console.WriteLine($"{nameof(Runtime.freshIngredients)}: {new Runtime("input.txt").freshIngredients}");
+Console.WriteLine($"{nameof(Runtime.splitCount)}: {new Runtime("input.txt").splitCount}");
 
 Console.WriteLine($"{nameof(Runtime.allFreshIngredients)}: {new Runtime("example.txt").allFreshIngredients}");
 
