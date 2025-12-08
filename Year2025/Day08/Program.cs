@@ -4,6 +4,6 @@ Console.WriteLine($"{nameof(Runtime.circuitAggregate)}: {new Runtime("example.tx
 
 Console.WriteLine($"{nameof(Runtime.circuitAggregate)}: {new Runtime("input.txt", 1000).circuitAggregate}");
 
-Console.WriteLine($"{nameof(Runtime.allFreshIngredients)}: {new Runtime("example.txt", 10).allFreshIngredients}");
+Console.WriteLine($"{nameof(Runtime.lastPairXProduct)}: {new Runtime("example.txt").lastPairXProduct}");
 
-Console.WriteLine($"{nameof(Runtime.allFreshIngredients)}: {new Runtime("input.txt", 1000).allFreshIngredients}");
+Console.WriteLine($"{nameof(Runtime.lastPairXProduct)}: {new Runtime("input.txt").lastPairXProduct}");

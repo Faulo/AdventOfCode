@@ -13,4 +13,9 @@ sealed class Tests {
     public void Test_circuitAggregate(string file, int connectionCount, int expected) {
         Assert.That(new Runtime(file, connectionCount).circuitAggregate, Is.EqualTo(expected));
     }
+
+    [TestCase("example.txt", 25272)]
+    public void Test_lastPairXProduct(string file, long expected) {
+        Assert.That(new Runtime(file).lastPairXProduct, Is.EqualTo(expected));
+    }
 }

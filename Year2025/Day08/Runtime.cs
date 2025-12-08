@@ -3,8 +3,7 @@
 namespace Day08;
 
 sealed partial class Runtime {
-    sealed class Circuit {
-    }
+    readonly int connectionCount;
     readonly List<Vector3Int> boxes = [];
     readonly List<HashSet<Vector3Int>> circuits = [];
 
@@ -18,7 +17,9 @@ sealed partial class Runtime {
         }
     }
 
-    internal Runtime(string file, int connectionCount) {
+    (Vector3Int left, Vector3Int right)? lastPair;
+
+    internal Runtime(string file, int? connectionCount = null) {
         foreach (string line in new FileInput(file).ReadLines()) {
             string[] coordinates = line.Split(',');
             if (int.TryParse(coordinates[0], out int x) && int.TryParse(coordinates[1], out int y) && int.TryParse(coordinates[2], out int z)) {
@@ -28,12 +29,24 @@ sealed partial class Runtime {
             }
         }
 
+        if (connectionCount is not null) {
+            ProcessConnectionCount(connectionCount.Value);
+        } else {
+            ProcessConnectionCount(int.MaxValue);
+        }
+    }
+
+    void ProcessConnectionCount(int connectionCount) {
         var boxPairs = uniquePairs
             .OrderBy(pair => Vector3Int.DistanceSquared(pair.left, pair.right))
             .Take(connectionCount);
 
         foreach (var (left, right) in boxPairs) {
             MergeCircuits(left, right);
+            if (circuitCount == 1) {
+                lastPair = (left, right);
+                break;
+            }
         }
     }
 
@@ -56,6 +69,15 @@ sealed partial class Runtime {
         .Take(3)
         .Select(c => c.Count)
         .Aggregate(1, (a, b) => a * b);
+    internal long lastPairXProduct {
+        get {
+            if (lastPair is null) {
+                throw new NotFiniteNumberException();
+            }
+
+            return lastPair.Value.left.x * lastPair.Value.right.x;
+        }
+    }
 
     internal long allFreshIngredients => 0;
 }
