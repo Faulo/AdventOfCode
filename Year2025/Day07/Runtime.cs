@@ -4,11 +4,9 @@ namespace Day07;
 
 sealed partial class Runtime {
     sealed class Splitter {
-        internal readonly Vector2Int position;
+        readonly HashSet<Splitter> ancestors = [];
 
-        internal readonly List<Splitter> ancestors = [];
-
-        public Splitter(Vector2Int position) => this.position = position;
+        readonly HashSet<Splitter> children = [];
 
         internal bool isSplitting {
             get => _isSplitting ??= ancestors.Any(s => s.isSplitting);
@@ -16,10 +14,28 @@ sealed partial class Runtime {
         }
 
         bool? _isSplitting = null;
+
+        internal void AddAncestor(Splitter ancestor) {
+            ancestors.Add(ancestor);
+            ancestor.children.Add(this);
+        }
+
+        internal long timelineCount {
+            get => _timelineCount ??= children.Sum(s => s.timelineCount);
+            set => _timelineCount = value;
+        }
+
+        long? _timelineCount = null;
+
+        internal bool isStart => isSplitting && ancestors.Count == 0;
+        internal bool isEnd => isSplitting && children.Count == 0;
+        internal bool isVirtual = false;
     }
 
     const char START = 'S';
     const char SPLITTER = '^';
+
+    readonly Dictionary<Vector2Int, Splitter> splitters = [];
 
     internal Runtime(string file) {
         var map = new FileInput(file).ReadAllAsCharacterMap();
@@ -30,8 +46,15 @@ sealed partial class Runtime {
 
         foreach (var (position, character) in map.allPositionsAndCharactersWithin) {
             if (character == SPLITTER) {
-                splitters[position] = new Splitter(position);
+                splitters[position] = new Splitter();
             }
+        }
+
+        for (int x = 0; x < map.width; x++) {
+            splitters[new Vector2Int(x, map.height)] = new Splitter() {
+                isVirtual = true,
+                timelineCount = 1,
+            };
         }
 
         foreach (var (position, splitter) in splitters) {
@@ -46,19 +69,22 @@ sealed partial class Runtime {
                 }
 
                 if (splitters.TryGetValue(new(position.x - 1, y), out var left)) {
-                    splitter.ancestors.Add(left);
+                    splitter.AddAncestor(left);
                 }
 
                 if (splitters.TryGetValue(new(position.x + 1, y), out var right)) {
-                    splitter.ancestors.Add(right);
+                    splitter.AddAncestor(right);
                 }
             }
         }
     }
 
-    readonly Dictionary<Vector2Int, Splitter> splitters = [];
+    internal int splitCount => splitters
+        .Values
+        .Count(s => !s.isVirtual && s.isSplitting);
 
-    internal int splitCount => splitters.Values.Count(s => s.isSplitting);
-
-    internal long timelineCount => 0;
+    internal long timelineCount => splitters
+        .Values
+        .Where(s => s.isStart)
+        .Sum(s => s.timelineCount);
 }

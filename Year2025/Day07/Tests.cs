@@ -11,7 +11,8 @@ sealed class Tests {
     }
 
     [TestCase("example.txt", 40)]
-    public void Test_timelineCount(string file, int expected) {
+    [TestCase("input.txt", 5748679033029)]
+    public void Test_timelineCount(string file, long expected) {
         Assert.That(new Runtime(file).timelineCount, Is.EqualTo(expected));
     }
 }
