@@ -4,3 +4,7 @@ Console.WriteLine($"{nameof(Runtime.grandTotal)}: {new Runtime("example.txt").gr
 
 Console.WriteLine($"{nameof(Runtime.grandTotal)}: {new Runtime("input.txt").grandTotal}");
 
+Console.WriteLine($"{nameof(Runtime.grandTotal)}: {new Runtime("example.txt", false).grandTotal}");
+
+Console.WriteLine($"{nameof(Runtime.grandTotal)}: {new Runtime("input.txt", false).grandTotal}");
+
