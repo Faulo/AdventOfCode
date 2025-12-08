@@ -1,5 +1,10 @@
 ﻿namespace Utilities {
     public struct Vector3Int(long x, long y, long z) {
+        public static long DistanceSquared(in Vector3Int left, in Vector3Int right) {
+            var delta = right - left;
+            return (delta.x * delta.x) + (delta.y * delta.y) + (delta.z * delta.z);
+        }
+
         /// <summary>
         /// (0, 0, 0)
         /// </summary>
