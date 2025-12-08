@@ -3,37 +3,62 @@
 namespace Day07;
 
 sealed partial class Runtime {
-    readonly CharacterMap map;
+    sealed class Splitter {
+        internal readonly Vector2Int position;
 
-    internal Runtime(string file) {
-        map = new FileInput(file).ReadAllAsCharacterMap();
+        internal readonly List<Splitter> ancestors = [];
+
+        public Splitter(Vector2Int position) => this.position = position;
+
+        internal bool isSplitting {
+            get => _isSplitting ??= ancestors.Any(s => s.isSplitting);
+            set => _isSplitting = value;
+        }
+
+        bool? _isSplitting = null;
     }
 
-    Vector2Int start => map
-        .allPositionsAndCharactersWithin
-        .First(tile => tile.character == 'S')
-        .position;
+    const char START = 'S';
+    const char SPLITTER = '^';
 
-    internal int splitCount {
-        get {
-            var dict = new Dictionary<Vector2Int, bool> {
-                [start] = true
-            };
+    internal Runtime(string file) {
+        var map = new FileInput(file).ReadAllAsCharacterMap();
+        var start = map
+            .allPositionsAndCharactersWithin
+            .First(tile => tile.character == START)
+            .position;
 
-            int count = 0;
+        foreach (var (position, character) in map.allPositionsAndCharactersWithin) {
+            if (character == SPLITTER) {
+                splitters[position] = new Splitter(position);
+            }
+        }
 
-            for (int y  = start.y + 1; y < map.height; y++) { }
+        foreach (var (position, splitter) in splitters) {
+            for (int y = position.y - 1; y >= start.y; y--) {
+                if (map.Is(position.x, y, START)) {
+                    splitter.isSplitting = true;
+                    break;
+                }
 
-            Console.WriteLine(start);
+                if (map[position.x, y] == SPLITTER) {
+                    break;
+                }
 
-            foreach (var (position, character) in map.allPositionsAndCharactersWithin) {
-                if (character == '^') {
+                if (splitters.TryGetValue(new(position.x - 1, y), out var left)) {
+                    splitter.ancestors.Add(left);
+                }
+
+                if (splitters.TryGetValue(new(position.x + 1, y), out var right)) {
+                    splitter.ancestors.Add(right);
                 }
             }
-
-            return count;
         }
     }
 
-    internal long allFreshIngredients => 0;
+    readonly Dictionary<Vector2Int, Splitter> splitters = [];
+
+    internal int splitCount => splitters.Values.Count(s => s.isSplitting);
+
+    internal long timelineCount => 0;
 }

@@ -46,6 +46,11 @@ namespace Utilities {
                 && position.y >= 0 && position.y < height;
         }
 
+        public bool IsInBounds(int x, int y) {
+            return x >= 0 && x < width
+                && y >= 0 && y < height;
+        }
+
         public string Serialize() {
             var builder = new StringBuilder();
             for (int x = 0; x < width; x++) {
@@ -101,6 +106,14 @@ namespace Utilities {
 
             character = this[position];
             return true;
+        }
+
+        public bool Is(int x, int y, char character) {
+            if (!IsInBounds(x, y)) {
+                return false;
+            }
+
+            return this[x, y] == character;
         }
 
         public IEnumerable<(Vector2Int position, char character)> GetNeighbors(Vector2Int position) {
