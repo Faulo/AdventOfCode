@@ -1,5 +1,10 @@
 ﻿namespace Utilities {
     public readonly struct Vector2Int {
+        public static long RectangleArea(in Vector2Int left, in Vector2Int right) {
+            var delta = right - left;
+            return (Math.Abs(delta.x64) + 1) * (Math.Abs(delta.y64) + 1);
+        }
+
         /// <summary>
         /// (0, 0)
         /// </summary>
