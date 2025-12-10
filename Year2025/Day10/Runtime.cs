@@ -1,24 +1,28 @@
-﻿using Utilities;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
+using Utilities;
 
 namespace Day10;
 
 sealed partial class Runtime {
-    readonly struct IndicatorBox {
+    sealed class IndicatorBox {
         readonly ulong targetLights;
         readonly ulong[] buttons;
         readonly int[][] buttonVoltages;
         readonly int[] targetVoltages;
+        readonly int[] range;
 
         internal IndicatorBox(ulong targetLights, ulong[] buttons, int[] targetVoltages, int[][] buttonVoltages) {
             this.targetLights = targetLights;
             this.buttons = buttons;
             this.targetVoltages = targetVoltages;
             this.buttonVoltages = buttonVoltages;
+
+            range = Enumerable.Range(0, buttons.Length).ToArray();
         }
 
         internal int toggleCount {
             get {
-                var range = Enumerable.Range(0, buttons.Length).ToList();
 
                 var queue = new List<List<int>>(range.Select<int, List<int>>(i => [i]));
 
@@ -55,81 +59,100 @@ sealed partial class Runtime {
             return mask == targetLights;
         }
 
+        const bool USE_POOL = false;
+
+        int[] Rent() {
+            return USE_POOL
+                ? ArrayPool<int>.Shared.Rent(buttons.Length)
+                : new int[buttons.Length];
+        }
+
+        void Return(int[] indices) {
+            if (USE_POOL) {
+                ArrayPool<int>.Shared.Return(indices);
+            } else {
+            }
+        }
+
+        ConcurrentBag<int[]> newQueue = [];
+
         internal int addCount {
             get {
-                var range = Enumerable.Range(0, buttons.Length).ToList();
-
-                var queue = new List<List<int>>([new int[buttons.Length].ToList()]);
+                int[] start = Rent();
+                Array.Fill(start, 0, 0, buttons.Length);
+                ConcurrentBag<int[]> queue = [start];
 
                 for (int count = 0; count < 13; count++) {
-                    var newQueue = new List<List<int>>(queue.Count);
-                    foreach (var indices in queue) {
-                        if (indices.Count == 0) {
-                            continue;
-                        }
+                    newQueue = [];
 
-                        foreach (int i in range) {
-                            List<int> list = new(indices);
-                            list[i]++;
-                            newQueue.Add(list);
-                        }
+                    bool isDone = queue
+                        .AsParallel()
+                        .Any(MatchesTargetVoltage);
+
+                    queue.AsParallel().ForAll(Return);
+
+                    if (isDone) {
+                        newQueue.AsParallel().ForAll(Return);
+                        Console.WriteLine($"{string.Join(',', targetVoltages)}: {count}");
+                        return count;
                     }
 
                     queue = newQueue;
-
-                    if (queue.AsParallel().Any(MatchesTargetVoltage)) {
-                        Console.WriteLine($"{string.Join(',', targetVoltages)}: {count + 1}");
-                        return count + 1;
-                    }
                 }
 
                 throw new ApplicationException();
             }
         }
 
-        bool MatchesTargetVoltage(List<int> indices) {
+        bool MatchesTargetVoltage(int[] indices) {
+            switch (CompareToTargetVoltage(indices)) {
+                case > 0:
+                    break;
+                case 0:
+                    return true;
+                case < 0:
+                    foreach (int i in range) {
+                        int[] newIndices = Rent();
+                        Array.Copy(indices, newIndices, buttons.Length);
+                        newIndices[i]++;
+                        newQueue.Add(newIndices);
+                    }
+
+                    break;
+            }
+
+            return false;
+        }
+
+        int CompareToTargetVoltage(int[] indices) {
             Span<int> voltages = stackalloc int[targetVoltages.Length];
 
-            for (int i = 0; i < indices.Count; i++) {
+            for (int i = 0; i < buttons.Length; i++) {
                 Add(voltages, buttonVoltages[i], indices[i]);
             }
 
-            int result = CompareTo(voltages, targetVoltages);
-
-            if (result > 0) {
-                indices.Clear();
-            }
-
-            return result == 0;
+            return CompareTo(voltages, targetVoltages);
         }
 
-        static void Clear(in Span<int> left) {
-            for (int i = 0; i < left.Length; i++) {
-                left[i] = 0;
-            }
-        }
-
-        static void Add(in Span<int> left, IReadOnlyList<int> right, int multiplier) {
+        static void Add(in Span<int> left, int[] right, int multiplier) {
             for (int i = 0; i < left.Length; i++) {
                 left[i] += right[i] * multiplier;
             }
         }
 
-        static int CompareTo(in Span<int> left, IReadOnlyList<int> right) {
-            bool matches = true;
+        static int CompareTo(in Span<int> left, int[] right) {
+            int matches = 0;
             for (int i = 0; i < left.Length; i++) {
                 switch (left[i].CompareTo(right[i])) {
                     case > 0:
                         return 1;
                     case < 0:
-                        matches = false;
+                        matches = -1;
                         break;
                 }
             }
 
-            return matches
-                ? 0
-                : -1;
+            return matches;
         }
     }
 
