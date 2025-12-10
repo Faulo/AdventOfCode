@@ -3,7 +3,7 @@
 namespace Day10;
 
 sealed partial class Runtime {
-    sealed class IndicatorBox {
+    readonly struct IndicatorBox {
         readonly ulong targetLights;
         readonly ulong[] buttons;
         readonly int[][] buttonVoltages;
@@ -175,32 +175,35 @@ sealed partial class Runtime {
         return buttonVoltage;
     }
 
-    readonly List<IndicatorBox> boxes = [];
+    readonly IndicatorBox[] boxes;
 
     internal Runtime(string file) {
-        foreach (string line in new FileInput(file).ReadLines()) {
-            string[] segments = line.Split(' ');
+        boxes = new FileInput(file)
+            .ReadLines()
+            .Select(line => {
+                string[] segments = line.Split(' ');
 
-            ulong targetLights = ParseLights(segments[0][1..^1]);
-            ulong[] buttons = segments
-                .Skip(1)
-                .Take(segments.Length - 2)
-                .Select(s => s[1..^1])
-                .Select(ParseButton)
-                .ToArray();
-            int[] targetVoltages = ParseVoltages(segments[^1][1..^1]);
-            int[][] buttonVoltages = segments
-                .Skip(1)
-                .Take(segments.Length - 2)
-                .Select(s => s[1..^1])
-                .Select(s => ParseButtonVoltage(s, targetVoltages.Length))
-                .ToArray();
+                ulong targetLights = ParseLights(segments[0][1..^1]);
+                ulong[] buttons = segments
+                    .Skip(1)
+                    .Take(segments.Length - 2)
+                    .Select(s => s[1..^1])
+                    .Select(ParseButton)
+                    .ToArray();
+                int[] targetVoltages = ParseVoltages(segments[^1][1..^1]);
+                int[][] buttonVoltages = segments
+                    .Skip(1)
+                    .Take(segments.Length - 2)
+                    .Select(s => s[1..^1])
+                    .Select(s => ParseButtonVoltage(s, targetVoltages.Length))
+                    .ToArray();
 
-            boxes.Add(new(targetLights, buttons, targetVoltages, buttonVoltages));
-        }
+                return new IndicatorBox(targetLights, buttons, targetVoltages, buttonVoltages);
+            })
+            .ToArray();
     }
 
-    internal int toggleCountSum => boxes.Sum(b => b.toggleCount);
+    internal int toggleCountSum => boxes.AsParallel().Sum(b => b.toggleCount);
 
-    internal int addCountSum => boxes.Sum(b => b.addCount);
+    internal int addCountSum => boxes.AsParallel().Sum(b => b.addCount);
 }
