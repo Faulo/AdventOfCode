@@ -6,8 +6,8 @@ namespace Day10;
 sealed class Tests {
     [TestCase("example.txt", 7)]
     [TestCase("input.txt", 502)]
-    public void Test_pressCountSum(string file, long expected) {
-        Assert.That(new Runtime(file).pressCountSum, Is.EqualTo(expected));
+    public void Test_toggleCountSum(string file, long expected) {
+        Assert.That(new Runtime(file).toggleCountSum, Is.EqualTo(expected));
     }
 
     [TestCase("0", 1)]
@@ -21,5 +21,10 @@ sealed class Tests {
     [TestCase(".", 0)]
     public void Test_ParseLight(string lights, byte expected) {
         Assert.That(Runtime.ParseLights(lights), Is.EqualTo(expected));
+    }
+
+    [TestCase("example.txt", 33)]
+    public void Test_addCountSum(string file, long expected) {
+        Assert.That(new Runtime(file).addCountSum, Is.EqualTo(expected));
     }
 }
