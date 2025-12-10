@@ -68,10 +68,7 @@ sealed partial class Runtime {
         }
 
         void Return(int[] indices) {
-            if (USE_POOL) {
-                ArrayPool<int>.Shared.Return(indices);
-            } else {
-            }
+            ArrayPool<int>.Shared.Return(indices);
         }
 
         ConcurrentBag<int[]> newQueue = [];
@@ -89,10 +86,15 @@ sealed partial class Runtime {
                         .AsParallel()
                         .Any(MatchesTargetVoltage);
 
-                    queue.AsParallel().ForAll(Return);
+                    if (USE_POOL) {
+                        queue.AsParallel().ForAll(Return);
+                    }
 
                     if (isDone) {
-                        newQueue.AsParallel().ForAll(Return);
+                        if (USE_POOL) {
+                            newQueue.AsParallel().ForAll(Return);
+                        }
+
                         Console.WriteLine($"{string.Join(',', targetVoltages)}: {count}");
                         return count;
                     }
