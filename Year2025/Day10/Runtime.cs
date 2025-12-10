@@ -126,6 +126,7 @@ sealed partial class Runtime {
 
         int CompareToTargetVoltage(int[] indices) {
             Span<int> voltages = stackalloc int[targetVoltages.Length];
+            voltages.Clear();
 
             for (int i = 0; i < buttons.Length; i++) {
                 Add(voltages, buttonVoltages[i], indices[i]);
