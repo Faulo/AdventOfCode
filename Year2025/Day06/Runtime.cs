@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Utilities;
+﻿using Utilities;
 
 namespace Day06;
 
@@ -87,7 +86,4 @@ sealed partial class Runtime {
     };
 
     internal long grandTotal => problems.Sum(p => p.total);
-
-    [GeneratedRegex("\\s+")]
-    private static partial Regex Whitespace();
 }
