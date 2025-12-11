@@ -3,7 +3,11 @@
 namespace Day11;
 
 sealed partial class Runtime {
-    sealed class Splitter {
+    sealed class Splitter(string name) {
+        internal readonly string name = name;
+
+        public override string ToString() => name;
+
         readonly HashSet<Splitter> children = [];
         readonly HashSet<Splitter> ancestors = [];
 
@@ -18,17 +22,37 @@ sealed partial class Runtime {
         }
 
         internal long timelineCount {
-            get => _timelineCount ??= isEnd ? 1 : children.Sum(s => s.timelineCount);
-            private set => _timelineCount = value;
+            get => _timelineCount ??= children.Sum(s => s.timelineCount);
+            set => _timelineCount = value;
         }
 
         long? _timelineCount = null;
 
-        internal bool isStart;
-        internal bool isEnd;
+        readonly long[] someTimelineCounts = [-1, -1, -1, -1];
+
+        internal long GetSomeTimelineCount(int mask) {
+            if (name == SERVER_DAC) {
+                mask |= 1;
+            }
+
+            if (name == SERVER_FFT) {
+                mask |= 2;
+            }
+
+            if (someTimelineCounts[mask] == -1) {
+                someTimelineCounts[mask] = name == END
+                    ? mask / 3
+                    : children.Sum(s => s.GetSomeTimelineCount(mask));
+            }
+
+            return someTimelineCounts[mask];
+        }
     }
 
-    const string START = "you";
+    const string YOU = "you";
+    const string SERVER = "svr";
+    const string SERVER_DAC = "dac";
+    const string SERVER_FFT = "fft";
     const string END = "out";
 
     readonly Dictionary<string, Splitter> splitters = [];
@@ -36,7 +60,7 @@ sealed partial class Runtime {
     Splitter Get(string name) {
         return splitters.TryGetValue(name, out var splitter)
             ? splitter
-            : splitters[name] = new();
+            : splitters[name] = new(name);
     }
 
     internal Runtime(string file) {
@@ -49,12 +73,10 @@ sealed partial class Runtime {
             Array.ForEach(args, n => splitter.AddChild(Get(n)));
         }
 
-        Get(START).isStart = true;
-        Get(END).isEnd = true;
+        Get(END).timelineCount = 1;
     }
 
-    internal long timelineCount => splitters
-        .Values
-        .Where(s => s.isStart)
-        .Sum(s => s.timelineCount);
+    internal long youCount => Get(YOU).timelineCount;
+
+    internal long serverCount => Get(SERVER).GetSomeTimelineCount(0);
 }
