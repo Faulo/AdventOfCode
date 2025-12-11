@@ -29,6 +29,7 @@ sealed class Tests {
     }
 
     [TestCase("example.txt", 24)]
+    [TestCase("input.txt", 1654141440)]
     public void Test_largestRectangleAreaOnlyGreen(string file, long expected) {
         Assert.That(new Runtime(file).largestRectangleAreaOnlyGreen, Is.EqualTo(expected));
     }
