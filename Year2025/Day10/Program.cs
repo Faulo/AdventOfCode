@@ -6,4 +6,4 @@ Console.WriteLine($"{nameof(Runtime.toggleCountSum)}: {new Runtime("input.txt").
 
 Console.WriteLine($"{nameof(Runtime.addCountSum)}: {new Runtime("example.txt").addCountSum}");
 
-Console.WriteLine($"{nameof(Runtime.addCountSum)}: {new Runtime("input.txt").addCountSum}");
+// Console.WriteLine($"{nameof(Runtime.addCountSum)}: {new Runtime("input.txt").addCountSum}");

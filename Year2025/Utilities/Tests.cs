@@ -49,5 +49,23 @@ namespace Utilities {
 
             Assert.That(sut[x, y], Is.EqualTo(expected));
         }
+
+        [TestCase(1, 2, 1, 2, 1, 2)]
+        [TestCase(0, 0, 10, 20, 10, 20)]
+        [TestCase(0, 0, 10, 20, 5, 0)]
+        [TestCase(0, 0, 10, 20, 0, 5)]
+        [TestCase(9, 4, 10, 6, 10, 5)]
+        [TestCase(0, 0, 10, 20, 5, 20)]
+        [TestCase(-1, -1, 1, 1, 0, -1)]
+        [TestCase(-1, -1, 1, 1, 0, 1)]
+        [TestCase(-1, -1, 1, 1, -1, 0)]
+        [TestCase(-1, -1, 1, 1, 1, 0)]
+        public void GivenPoints_WhenRectangleBorder_ThenReturnBorder(int x1, int y1, int x2, int y2, int expectedX, int expectedY) {
+            var start = new Vector2Int(x1, y1);
+            var end = new Vector2Int(x2, y2);
+            var expected = new Vector2Int(expectedX, expectedY);
+
+            Assert.That(Vector2Int.RectangleBorder(start, end), Does.Contain(expected));
+        }
     }
 }

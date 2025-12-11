@@ -5,6 +5,20 @@
             return (Math.Abs(delta.x64) + 1) * (Math.Abs(delta.y64) + 1);
         }
 
+        public static IEnumerable<Vector2Int> RectangleBorder(in Vector2Int left, in Vector2Int right) {
+            int minX = Math.Min(left.x, right.x);
+            int maxX = Math.Max(left.x, right.x);
+            int minY = Math.Min(left.y, right.y);
+            int maxY = Math.Max(left.y, right.y);
+
+            return Enumerable
+                .Empty<Vector2Int>()
+                .Concat(Enumerable.Range(minX, maxX - minX + 1).Select(x => new Vector2Int(x, minY)))
+                .Concat(Enumerable.Range(minX, maxX - minX + 1).Select(x => new Vector2Int(x, maxY)))
+                .Concat(Enumerable.Range(minY, maxY - minY + 1).Select(y => new Vector2Int(minX, y)))
+                .Concat(Enumerable.Range(minY, maxY - minY + 1).Select(y => new Vector2Int(maxX, y)));
+        }
+
         /// <summary>
         /// (0, 0)
         /// </summary>
