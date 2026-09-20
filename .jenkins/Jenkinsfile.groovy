@@ -3,9 +3,8 @@ pipeline {
 		label 'docker'
 	}
 	environment {
-		DOCKER_IMAGE_LINUX = "mcr.microsoft.com/dotnet/sdk:8.0"
-		DOCKER_IMAGE_WINDOWS = "mcr.microsoft.com/dotnet/sdk:8.0-windowsservercore-ltsc2019"
-		DOCKER_ARGS = " "
+		DOCKER_IMAGE_LINUX = "mcr.microsoft.com/dotnet/sdk:9.0"
+		DOCKER_IMAGE_WINDOWS = "mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2019"
 	}
 	options {
 		disableConcurrentBuilds()
@@ -73,7 +72,7 @@ pipeline {
 								branches[name] = {
 									stage(name) {
 										dir(path) {
-											withDockerContainer(image: DOCKER_IMAGE, args: DOCKER_ARGS) {
+											docker.image(DOCKER_IMAGE).inside {
 												catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', catchInterruptions: false) {
 													callShell 'dotnet build'
 													callShell 'dotnet test --logger junit'
